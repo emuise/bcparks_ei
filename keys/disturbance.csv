@@ -1,18 +1,12 @@
-class_val,class,colour
-0,No Disturbance,#00000000
-1,Fire,#944046
-2,Harvesting,#8eb63b
-3,Non Stand-Replacing,#00000000
-4,Road,#00000000
-5,Untyped Disturbance,#00000000
-6,Untyped Disturbance,#00000000
-7,Untyped Disturbance,#00000000
-8,Untyped Disturbance,#00000000
-9,Untyped Disturbance,#00000000
-10,Ag,#00000000
-1000,Untyped Disturbance,#00000000
-1001,Fire,#944046
-1002,Harvesting,#8eb63b
-1003,Non Stand-Replacing,#00000000
-1004,Road,#00000000
-1005,Ag,#00000000
+class_val,class
+0,No Disturbance
+1,Fire
+2,Harvesting
+3,Non Stand-Replacing
+4,Road
+5,Untyped Disturbance
+6,Untyped Disturbance
+7,Untyped Disturbance
+8,Untyped Disturbance
+9,Untyped Disturbance
+10,Ag

@@ -1,0 +1,14 @@
+class_val,class_name,Forest,Wetland
+0,unclassifed,Other,Other
+20,water,Other,Other
+31,snow/ice,Other,Other
+32,rock/rubble,Other,Other
+33,exposed/barren land,Non-Forest,Non-Wetland
+40,bryoid,Non-Forest,Non-Wetland
+50,shrubland,Non-Forest,Non-Wetland
+80,wetland,Non-Forest,Wetland
+81,wetland-treed,Forest,Wetland
+100,herbs,Non-Forest,Non-Wetland
+210,coniferous,Forest,Non-Wetland
+220,broadleaf,Forest,Non-Wetland
+230,mixed wood,Forest,Non-Wetland
