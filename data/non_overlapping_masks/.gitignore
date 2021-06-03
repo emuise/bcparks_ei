@@ -1,5 +1,2 @@
 # Except this file
-*.dat
-*.ovr
-*.hdr
-*.aux.xml
+*
