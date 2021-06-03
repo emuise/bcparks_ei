@@ -1,0 +1,369 @@
+---
+title: "04_analysis"
+author: "Evan Muise"
+date: "5/20/2021"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(cowplot)
+library(ggsci)
+library(ggrepel)
+
+library(scico)
+library(ggthemes)
+theme_set(theme_bw())
+set.seed(69420)
+
+source(here::here("scripts", "get_keys.R"))
+
+elev_agg <- 50
+```
+
+
+Merged DF methods
+
+```{r message=FALSE}
+full_dfs <- list.files(here::here("data", "all_vars"), full.names = T)
+
+process_csv <- function(df) {
+  print(df)
+  if (is.character(df)) {
+    df <- read_csv(df, col_types = cols())
+  }
+
+  df <- df %>%
+    filter(vlce != 0) %>% # filter out unclassified pixels
+    filter(elev < 32000) # filter out elevation nodata pixels (19 total)
+  
+  cont <- df %>% 
+    filter(vlce %in% c(230, 220, 210, 81)) %>% # forested pixels
+    select(subzone, protected, elev:total_biomass, vlce)
+  
+  # for slice_sample in next pipes
+  cont_cells <- cont %>% count(protected) %>% pull(n) %>% min()
+  
+  both <- cont %>% count(protected) %>% pull(n) %>% length()
+  # check if both protected and unprotected exists
+  
+  if (cont_cells != 0 & both == 2) {
+  
+    cont <- cont %>%
+      group_by(protected) %>%
+      slice_sample(n = cont_cells) # get same no. pixels prot and unprot
+    
+    cont_t_tests <- cont %>%
+      pivot_longer(cols = elev:total_biomass, names_to = "variable") %>%
+      group_by(subzone, variable, protected) %>%
+      nest() %>%
+      pivot_wider(names_from = protected, values_from = data) %>%
+      ungroup() %>%
+      mutate(
+        t_test = map2(protected, unprotected, ~{t.test(.x$value, .y$value) %>% 
+                 tidy()})
+      ) %>%
+      select(!c("protected", "unprotected")) %>%
+      unnest(cols = t_test)
+  } else {
+    cont_t_tests <- tibble()
+  }
+    
+  if (nrow(df) > 0) {
+    
+    disc <- df %>%
+      select(subzone, protected, vlce, Change_Attribution, change_year)
+    
+    vlce <- disc %>%
+      count(subzone, protected, vlce) %>%
+      group_by(subzone, protected) %>%
+      mutate(per_cover = n / sum(n))
+    
+    change <- disc %>%
+      count(subzone, protected, Change_Attribution) %>%
+      group_by(subzone, protected) %>%
+      mutate(per_dist = n / sum(n))
+    
+    elev_nw <- df %>% 
+      left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
+      filter(class_name != "water") %>%
+      group_by(subzone, protected, elev, class_name) %>%
+      summarize(count = n())
+    
+    elev_w <- df %>% 
+      left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
+      group_by(subzone, protected, elev, class_name) %>%
+      summarize(count = n())
+    
+    elev_dist <- df %>%
+      group_by(subzone, protected, elev, Change_Attribution) %>%
+      summarize(count = n())
+    
+  } else {
+    
+    disc <- tibble()
+    vlce <- tibble()
+    change <- tibble()
+    elev_nw <- tibble()
+    elev_w <- tibble()
+    elev_dist()
+    
+  }
+  
+  outputs <- list("cont_t_tests" = cont_t_tests, 
+                  "vlce" = vlce, 
+                  "change" = change,
+                  "elev_nw" = elev_nw,
+                  "elev_w" = elev_w,
+                  "elev_dist" = elev_dist)
+    
+    #names(outputs) <- c("cont_t_tests", "vlce", "change")
+    
+  return(outputs)
+  
+}
+
+outs <- map(full_dfs, process_csv)
+
+t_tests <- bind_rows(map(outs, 1))
+
+vlce <- bind_rows(map(outs, 2)) %>%
+  ungroup() %>%
+  complete(subzone, protected, vlce, fill = list(per_cover = 0))
+
+change <- bind_rows(map(outs, 3)) %>%
+  ungroup() %>%
+  complete(subzone, protected, Change_Attribution  , fill = list(per_dist = 0))
+
+elev_nw <- bind_rows(map(outs, 4))
+
+elev_w <- bind_rows(map(outs, 5))
+
+elev_dist <- bind_rows(map(outs, 6))
+
+save.image(file = here::here("data", "backup.RData"))
+```
+
+```{r}
+load(here::here("data", "backup.RData"))
+```
+
+
+Elevation & Protected/Unprotected (BEC) Figures
+
+```{r}
+
+
+elev_zone_data <- elev_nw %>% 
+  ungroup() %>%
+  filter(elev < 32000) %>%
+  separate(subzone, into = c("zone", "subzone")) %>% 
+  group_by(protected, elev, zone) %>% 
+  summarize(n = sum(count)) %>% 
+  mutate(perc = n / sum(n)) 
+
+elev_zone_plot <- elev_zone_data %>%
+  ggplot(aes(x = elev, y = perc, fill = zone)) +
+  geom_area(stat = "identity") +
+  facet_wrap(~str_to_title(protected)) +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "Elevation (m)",
+       y = "Percent",
+       fill = "BEC Zone") +
+  theme(legend.position = "left") +
+  scale_fill_manual(values = bec_colours)
+
+elev_20m <- elev_zone_data %>%
+  mutate(elev = elev %/% elev_agg * elev_agg) %>%
+  group_by(protected, elev, zone) %>%
+  summarize(n = sum(n)) %>%
+  mutate(perc = n / sum(n))
+
+elev_zone_plot_20m <- elev_20m %>%
+  ggplot(aes(x = elev, y = perc, fill = zone)) +
+  geom_area(stat = "identity") +
+  facet_wrap(~str_to_title(protected)) +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "Elevation (m)",
+       y = "Percent",
+       fill = "BEC Zone") +
+  theme(legend.position = "left") +
+  scale_fill_igv()
+
+protected_elev <- elev_zone_data %>%
+  ungroup() %>%
+  pivot_wider(values_from = n, names_from = protected) %>% 
+  group_by(elev) %>%
+  summarize(protected = sum(protected, na.rm = T),
+            unprotected = sum(unprotected, na.rm = T)) %>%
+  mutate(total = protected + unprotected,
+         per_prot = protected / total,
+         per_unprot = 1 - per_prot) %>%
+  pivot_longer(per_prot:per_unprot, names_to = "value", values_to = "percent")
+
+# NOTE THE GEOM SMOOTH RATHER THAN LINE, DUE TO HIGH AND LOW ELEV LOW NUMBER
+# OF PIXELS
+prot_elev_plot <- protected_elev %>%
+  ggplot(aes(x = elev, y = per_prot)) +
+  #geom_smooth() +
+  #geom_point() +
+  geom_line() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = "Elevation (m)",
+       y = "Percent Protected") +
+  coord_flip()
+
+# 20m protected elevation plot
+prot_elev_plot_20m_colour <- protected_elev %>% 
+  mutate(elev = elev %/% elev_agg * elev_agg) %>% 
+  group_by(elev) %>%
+  summarize(protected = sum(protected),
+            unprotected = sum(unprotected)) %>%
+  mutate(total = protected + unprotected,
+         per_prot = protected / total,
+         per_unprot = 1 - per_prot) %>%
+  pivot_longer(per_prot:per_unprot, names_to = "value", values_to = "percent") %>%
+  mutate(value = ifelse(value == "per_prot", "Protected", "Unprotected")) %>%
+  ggplot(aes(x = elev, y = percent, fill = value)) +
+  #geom_smooth() +
+  #geom_point() +
+  geom_area() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = NULL,
+       y = "Percent",
+       fill = NULL) +
+  theme(axis.text.y = element_blank(),
+        legend.position = c(0.7, 0.85))+
+  coord_flip()
+
+prot_elev_plot_20m <- protected_elev %>% 
+  mutate(elev = elev %/% elev_agg * elev_agg) %>% 
+  group_by(elev) %>%
+  summarize(protected = sum(protected),
+            unprotected = sum(unprotected)) %>%
+  mutate(total = protected + unprotected,
+         per_prot = protected / total,
+         per_unprot = 1 - per_prot) %>%
+  ggplot(aes(x = elev, y = per_prot)) +
+  #geom_smooth() +
+  #geom_point() +
+  geom_area() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = NULL,
+       y = "Percent Protected",
+       fill = NULL) +
+  theme(axis.text.y = element_blank(),
+        legend.position = c(0.7, 0.85))+
+  coord_flip()
+
+plot_grid(elev_zone_plot_20m, prot_elev_plot_20m,
+          rel_widths = c(3, 1),
+          align = 'h', axis = 'tb')
+```
+
+Elevation & Protected/Unprotected (VLCE) Figures
+
+```{r}
+vlce_colours <- keys$vlce %>% pull(ntems_colour) %>% rev()
+
+elev_lcc_nw <- elev_w %>%
+  filter(elev < 32000) %>%
+  mutate(elev = elev %/% elev_agg * elev_agg) %>%
+  group_by(protected, elev, class_name) %>%
+  summarize(n = sum(count)) %>%
+  mutate(perc = n / sum(n)) %>%
+  left_join(keys$vlce) %>%
+  mutate(name_clean = fct_rev(fct_reorder(name_clean, class_val)))
+
+elev_lcc_20m <- elev_lcc_nw %>%
+  ggplot(aes(x = elev, y = perc, fill = name_clean)) +
+  geom_area(stat = "identity") +
+  coord_flip() +
+  facet_wrap(~str_to_title(protected)) +
+  #coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = vlce_colours) +
+  labs(x = "Elevation (m)",
+       y = "Percent Cover",
+       fill = "Land Cover") +
+  theme(legend.position = "left")
+
+plot_grid(elev_lcc_20m, prot_elev_plot_20m,
+          rel_widths = c(3, 1), labels = c('A','B'), label_size = 20,
+          align = 'h', axis = 'tb')
+```
+
+Elevation and Disturbance
+
+```{r}
+elev_dist %>% 
+  mutate(elev = elev %/% elev_agg * elev_agg,
+         Change_Attribution = ifelse(!(Change_Attribution %in% c(1, 2)), 
+                                     NA, 
+                                     Change_Attribution)) %>%
+  group_by(protected, elev, Change_Attribution) %>%
+  summarize(count = sum(count)) %>%
+  mutate(perc = count / sum(count),
+         Change_Attribution = case_when(Change_Attribution == 1 ~ "Fire",
+                                        Change_Attribution == 2 ~ "Harvest",
+                                        TRUE ~ "None")) %>%
+  ggplot(aes(x = elev, y = perc, fill = Change_Attribution)) +
+  geom_area(stat = "identity") +
+  coord_flip() +
+  facet_wrap(~str_to_title(protected)) +
+  #coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  #scale_fill_manual(values = vlce_colours) +
+  labs(x = "Elevation (m)",
+       y = "Percent Disturbed",
+       fill = "Disturbance") +
+  theme(legend.position = "left")
+```
+
+
+Donut Plots
+
+```{r}
+# disturbance, using elev_dist bnecause i made change wrong before i wanted to
+elev_dist %>%
+  mutate(Change_Attribution = ifelse(!(Change_Attribution %in% c(1, 2)), 
+                                     NA, 
+                                     Change_Attribution)) %>%
+  group_by(protected, Change_Attribution) %>%
+  summarize(count = sum(count)) %>%
+  mutate(perc = count / sum(count),
+         Change_Attribution = case_when(Change_Attribution == 1 ~ "Fire",
+                                        Change_Attribution == 2 ~ "Harvest",
+                                        TRUE ~ "None")) %>%
+  ggplot(aes)
+
+```
+
+T-Test Plots
+
+```{r}
+t_tests_zonal <- t_tests %>%
+  separate(subzone, into = c("zone", "subzone")) %>% 
+  mutate(sig0.05 = ifelse(p.value < 0.05, T, F),
+         sig0.01 = ifelse(p.value < 0.01, T, F)) %>%
+  group_by(zone, variable) %>%
+  summarize(sig0.05 = sum(sig0.05),
+            sig0.01 = sum(sig0.01),
+            total = n()) %>%
+  mutate(per_sig0.05 = sig0.05 / total,
+         per_sig0.01 = sig0.01 / total) %>%
+  left_join(keys$continuous)
+
+t_tests_zonal %>%
+  filter(variable != "slope") %>%
+  ggplot(aes(x = per_sig0.01, y = var_long)) +
+  geom_point(aes(size = total), alpha = 0.5) +
+  geom_text_repel(aes(label = zone), max.overlaps = 100) +
+  labs(x = "Percent Significance",
+       y = NULL)
+  
+```
+

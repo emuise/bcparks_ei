@@ -15,4 +15,7 @@ keys <- map(key_locs,
 
 names(keys) <- key_names
 
+keys$vlce <- keys$vlce %>%
+  filter(class_val != 0)
+
 rm(keys_here, key_locs, key_names, clean_name)

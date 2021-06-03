@@ -1,14 +1,14 @@
-class_val,class_name,Forest,Wetland
-0,unclassifed,Other,Other
-20,water,Other,Other
-31,snow/ice,Other,Other
-32,rock/rubble,Other,Other
-33,exposed/barren land,Non-Forest,Non-Wetland
-40,bryoid,Non-Forest,Non-Wetland
-50,shrubland,Non-Forest,Non-Wetland
-80,wetland,Non-Forest,Wetland
-81,wetland-treed,Forest,Wetland
-100,herbs,Non-Forest,Non-Wetland
-210,coniferous,Forest,Non-Wetland
-220,broadleaf,Forest,Non-Wetland
-230,mixed wood,Forest,Non-Wetland
+class_val,class_name,name_clean,ntems_colour,forest,wetland
+0,unclassifed,Unclassified,#000000,Other,Other
+20,water,Water,#3333ff,Other,Other
+31,snow/ice,Snow/Ice,#ccffff,Other,Other
+32,rock/rubble,Rock/Rubble,#cccccc,Other,Other
+33,exposed/barren land,Exposed/Barren Land,#996633,Non_Forest,Non_Wetland
+40,bryoid,Bryoid,#ffccff,Non_Forest,Non_Wetland
+50,shrubland,Shrubland,#ffff00,Non_Forest,Non_Wetland
+80,wetland,Wetland,#993399,Non_Forest,Wetland
+81,wetland-treed,Wetland-Treed,#9933cc,Forest,Wetland
+100,herbs,Herbs,#ccff33,Non_Forest,Non_Wetland
+210,coniferous,Coniferous,#006600,Forest,Non_Wetland
+220,broadleaf,Broadleaf,#00cc00,Forest,Non_Wetland
+230,mixed wood,Mixed Wood,#cc9900,Forest,Non_Wetland

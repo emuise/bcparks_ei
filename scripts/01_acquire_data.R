@@ -36,6 +36,8 @@ valid_categories <- c("Ia", "Ib", "II", "IV")
 #size filter is based on 100ha
 #hence 1e6 square metres
 #also removes any biome marine parks
+
+###currently does not filter for AGE!
 cpcad_filtered <- cpcad_bc %>%
   mutate(Shape_Area = st_area(cpcad_bc)) %>%
   filter(IUCN_CAT %in% valid_categories &
