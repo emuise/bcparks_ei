@@ -4,6 +4,7 @@ from geopandas import GeoDataFrame
 import rasterio.features
 from shapely.geometry import shape
 from osgeo import gdal, ogr
+import numpy as np
 
 def raster_mask_to_shapefile(raster, outname="vectorized.shp", outdir=None):
     """
@@ -54,3 +55,27 @@ def clip_by_utm_zone(raster, mask):
     gdal.Warp(save_location, raster, options = warp_options_clip)
     
     return(save_location)
+
+def summarize_structure(file):
+    print(file)
+
+    loaded = pd.read_csv(file)
+    csv = loaded[["protected", "subzone", "vlce", "elev_cv", "loreys_height", "percentage_first_returns_above_2m", "total_biomass"]]
+    
+    # removal of harvested and non-forest pixels is now done in the sampling step (R)
+    #csv = csv[csv["vlce"].isin([230, 220, 210, 81])] # use only forested pixels
+    #csv = csv[csv["Change_Attribution"] != 2] # remove harvested pixels
+    csv = csv[csv["elev_cv"] < 1]
+    
+    output = csv.groupby(["protected", "subzone"]).agg(
+        mean_elev_cv = ("elev_cv", "mean"),
+        mean_loreys_height = ("loreys_height", "mean"),
+        mean_percentage_first_returns_above_2m = ("percentage_first_returns_above_2m", "mean"),
+        mean_total_biomass = ("total_biomass", "mean"),
+        sd_elev_cv = ("elev_cv", np.std),
+        sd_loreys_height = ("loreys_height", np.std),
+        sd_percentage_first_returns_above_2m = ("percentage_first_returns_above_2m", np.std),
+        sd_total_biomass = ("total_biomass", np.std),
+        count = ("protected", "count"))
+    
+    return output
