@@ -394,13 +394,15 @@ change_donut <- change %>%
   mutate(perc = count / sum(count),
          Change_Attribution = case_when(Change_Attribution == 1 ~ "Fire",
                                         Change_Attribution == 2 ~ "Harvest",
-                                        TRUE ~ "None")) %>%
+                                        TRUE ~ "None")) 
+
+change_donut %>%
   ggplot(aes(x = protected, y = perc, fill = Change_Attribution)) +
-  geom_bar(stat = "identity", position = "stack") +
+  geom_bar(stat = "identity") +
   guides(fill = guide_legend(reverse = F)) +
   theme_void() +
   theme(legend.position = "bottom") +
-  coord_polar(theta = "y") +
+  #coord_polar(theta = "y") +
   labs(fill = "Disturbance") +
   guides(fill = guide_legend(title.position = "top",
                              title.hjust = 0.5))
@@ -410,7 +412,9 @@ bec_donut <- vlce %>%
   separate(subzone, into = c("zone", "subzone")) %>%
   group_by(protected, zone) %>%
   summarize(count = sum(n, na.rm = T)) %>%
-  mutate(perc = count / sum(count)) %>%
+  mutate(perc = count / sum(count)) 
+
+bec_donut %>%
   ggplot(aes(x = protected, y = perc, fill = zone)) +
   geom_bar(stat = "identity", position = "stack") +
   guides(fill = guide_legend(reverse = F)) +
@@ -422,13 +426,27 @@ bec_donut <- vlce %>%
   guides(fill = guide_legend(title.position = "top",
                              title.hjust = 0.5))
 
+bec_donut %>%
+  ggplot(aes(x = zone, y = perc, fill = zone)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = seq(0, .2, .1), lty = "dashed") +
+  coord_polar() +
+  scale_fill_igv() +
+  facet_wrap(~str_to_title(protected)) +
+  #theme_void() +
+  theme(legend.position = "bottom") +
+  labs(fill = NULL,
+       x = NULL)
+
 # VLCE  
 vlce_donut <- vlce %>%
   group_by(protected, vlce) %>%
   summarize(count = sum(n, na.rm = T)) %>%
   left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
   mutate(perc = count / sum(count, na.rm = T),
-         name_clean = fct_reorder(name_clean, vlce)) %>%
+         name_clean = fct_reorder(name_clean, vlce)) 
+
+vlce_donut %>%
   ggplot(aes(x = protected, y = perc, fill = name_clean)) +
   geom_bar(stat = "identity", position = "stack") +
   guides(fill = guide_legend(reverse = F)) +
@@ -439,6 +457,18 @@ vlce_donut <- vlce %>%
   scale_fill_manual(values = rev(vlce_colours)) +
   guides(fill = guide_legend(title.position = "top",
                              title.hjust = 0.5))
+
+
+vlce_donut %>%
+  ggplot(aes(x = name_clean, y = perc, fill = name_clean)) +
+  geom_bar(stat = "identity") +
+  #geom_hline(yintercept = c(0, .25, .5, .75, 1), lty = "dashed") +
+  coord_polar(theta = "x") +
+  scale_fill_manual(values = rev(vlce_colours)) +
+  facet_wrap(~str_to_title(protected)) +
+  theme_void() +
+  theme(legend.position = "bottom") +
+  labs(fill = NULL)
 
 plot_grid(vlce_donut, change_donut, 
           ncol = 2, align = 'h', axis = 'tb')
@@ -497,7 +527,7 @@ vlce %>%
   geom_abline(slope = 1, intercept = 0, lty = "dashed") +
   scale_colour_igv()
 
-# BEC subzone proportion
+# BEC subzone proportion of BC
 vlce %>%
   group_by(protected, subzone) %>%
   summarize(count = sum(n)) %>%
@@ -514,6 +544,90 @@ vlce %>%
        y = "Unprotected") +
   geom_abline(slope = 1, intercept = 0, lty = "dashed") +
   scale_colour_igv()
+
+# Protected portions of subzones
+per_prot_zone <- vlce %>% 
+  group_by(subzone, protected) %>%
+  summarize(count = sum(n)) %>%
+  mutate(perc = count / sum(count)) %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  filter(protected == "protected") %>%
+  mutate(zone = fct_reorder(zone, perc)) 
+
+n_zones <- per_prot_zone %>%
+  count(zone)
+
+per_prot_zone %>%
+  left_join(n_zones) %>%
+  mutate(label = paste0(zone, " (", n, ")"),
+         label = fct_reorder(label, perc)) %>%
+  ggplot() +
+  geom_boxplot(aes(x = perc, y = label)) +
+  geom_vline(aes(xintercept = 0.17, colour = "2020 Biodiversity Target (Global)"), lty = "dashed") +
+  geom_vline(aes(xintercept = 0.10, colour = "2010 Biodiversity Target (Ecoregions)"), lty = "dashed") +
+  scale_colour_aaas() +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Percent Protected",
+       y = NULL,
+       fill = NULL,
+       colour = NULL) +
+  theme(legend.position = c(0.75, 0.2))
+
+bec_prot_donut <- vlce %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  group_by(zone, protected) %>%
+  summarize(count = sum(n)) %>%
+  mutate(perc = count / sum(count)) 
+
+bec_perc_terr <- bec_prot_donut %>%
+  summarize(count = sum(count)) %>%
+  mutate(perc_terr = count / sum(count))
+
+w <- sort(bec_perc_terr$perc_terr)
+pos <- 0.5 * (cumsum(w) + cumsum(c(0, w[-length(w)])))
+
+bec_prot_donut %>%
+  filter(protected == "protected") %>%
+  left_join(keys$bec) %>%
+  left_join(bec_perc_terr, by = c("zone" = "zone")) %>%
+  mutate(zone_nm = fct_reorder(zone_nm, perc),
+         zone = fct_reorder(zone, perc, .fun = max)) %>%
+  ggplot(aes(x = fct_reorder(zone, perc), y = perc, fill = zone_nm)) +
+  geom_bar(stat = "identity") +
+  geom_hline(aes(yintercept = 0.17, colour = "2020 Biodiversity Target (Global)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.10, colour = "2010 Biodiversity Target (Ecoregions)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.162, colour = "Total BC Proportion Protected (16.2%)"), lty = "dotted") +
+  geom_text(aes(x = 1, y = .12), label = "10%", colour = "black") +
+  geom_text(aes(x = 1, y = .19), label = "17%") +
+  scale_colour_aaas() +
+  scale_fill_igv() +
+  coord_polar() +
+  theme_void() + 
+  theme(axis.line = element_blank(),
+        axis.title = element_blank(), 
+        axis.ticks = element_blank(), 
+        axis.text.y = element_blank(),
+        #legend.position = "bottom",
+        legend.box = "vertical") +
+  labs(fill = NULL,
+       colour = NULL)
+
+ggsave(here::here("outputs", "test.png"), device = "png")
+
+vlce %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  group_by(zone, protected) %>%
+  summarize(count = sum(n)) %>%
+  mutate(perc = count / sum(count),
+         zone = fct_reorder(zone, perc)) %>%
+  filter(protected == "protected") %>%
+  ggplot() +
+  geom_point(aes(x = perc, y = zone)) +
+  geom_vline(xintercept = c(.10, .17), colour = "red") +
+  scale_x_continuous(lim = c(0, .302), labels = scales::percent) +
+  labs(x = "Percent Protected",
+       y = NULL,
+       fill = NULL)
 ```
 
 
@@ -752,10 +866,13 @@ zoomed vignette section
 
 ```{r}
 library(ggridges)
-name <- "CDF_mm"
+name2 <- "CDF_mm"
 name <- "ESSF_wvp"
 
 subzone_csv <- read_csv(here::here("data", "all_vars", "sampled", paste0(name, "-2015.csv")))
+
+subzone_csv <- bind_rows(read_csv(here::here("data", "all_vars", "sampled", paste0(name, "-2015.csv"))),
+          read_csv(here::here("data", "all_vars", "sampled", paste0(name2, "-2015.csv"))))
 
 subzone_formatted <- subzone_csv %>% 
   select(subzone, protected, elev_cv:total_biomass) %>%
@@ -765,9 +882,9 @@ subzone_formatted <- subzone_csv %>%
   mutate(title = ifelse(p.value < 0.01, paste(var_long, "*", ""), var_long))
 
 subzone_formatted %>%
-  ggplot(aes(x = value, y = protected, fill = str_to_title(protected))) +
+  ggplot(aes(x = protected, y = value, fill = str_to_title(protected))) +
   geom_boxplot(outlier.alpha = 0.5) +
-  facet_wrap(~title, scales = "free") +
+  facet_grid(str_replace(subzone, "_", " ")~var_long, scales = "free") +
   labs(x = NULL,
        y = NULL,
        fill = NULL) +
@@ -799,6 +916,65 @@ subzone_formatted %>%
 ```
 
 ```{r}
+stat.test <- subzone_formatted %>%
+  group_by(subzone, name) %>%
+  rstatix::t_test(value ~ protected) %>%
+  mutate(p.adj = p * 496) %>% # bonferroni correction
+  add_significance()
+
+stat.test <- stat.test %>% add_xy_position(x = "name")
+
+ggboxplot(subzone_formatted, x = "protected", y = "value",
+          facet = c("var_long", "value"))
+```
+
+```{r}
+library(rstatix)
+library(ggpubr)
+
+names <- c("CDF_mm", "ESSF_wvp")
+
+df <- map_df(here::here("data", "all_vars", "sampled", paste0(names, "-2015.csv")), read_csv)
+
+df_formatted <- df %>%
+  select(subzone, protected, elev_cv:total_biomass) %>%
+  pivot_longer(elev_cv:total_biomass) %>%
+  left_join(keys$continuous, by = c("name" = "variable")) %>%
+  group_by(subzone, protected)
+
+stat.test <- df_formatted %>%
+  group_by(subzone, name) %>%
+  rstatix::t_test(value ~ protected) %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  #mutate(p.adj = p * 496,
+  #       p.adj = ifelse(p.adj > 1, 1, p.adj)) %>% # bonferroni correction
+  add_significance() 
+
+stat.test <- stat.test %>%
+  add_xy_position(x = "protected")
+  
+
+box = ggboxplot(
+  df_formatted, x = "protected", y = "value",
+  facet.by = c("subzone", "var_long"),
+  #orientation = "horizontal",
+  #scales = "free_x"
+  ) 
+
+box +
+  stat_pvalue_manual(stat.test, hide.ns = T)
+
+ggboxplot(
+  df_formatted, x = "protected", y = "value",
+  facet.by = "var_long"
+) +
+  stat_compare_means(method = "t.test",
+                      group)
+      
+```
+
+
+```{r}
 library(sf)
 
 bec_sf <- read_sf(here::here("data", "shapefiles", "bec_zones.shp"))
@@ -824,5 +1000,7 @@ ggplot() +
   scale_fill_igv() +
   labs(fill = NULL,
        linetype = NULL)
+
+ggsave(here::here("outputs", "bec_map.png"), device = "png")
 ```
 
