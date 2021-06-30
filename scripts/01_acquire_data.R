@@ -2,9 +2,10 @@
 #Evan Muise
 #April 7th, 2020
 
-library(tidyverse)
-library(rgdal)
-library(sf)
+library(tidyverse) # in use
+library(rgdal) # in use
+library(sf) # in use
+library(bcmaps) # in use
 
 ##cpcad data
 
@@ -41,8 +42,8 @@ valid_categories <- c("Ia", "Ib", "II", "IV")
 cpcad_filtered <- cpcad_bc %>%
   mutate(Shape_Area = st_area(cpcad_bc)) %>%
   filter(IUCN_CAT %in% valid_categories &
-         as.numeric(Shape_Area) > 1e6 &
-         BIOME != "M") %>%
+           as.numeric(Shape_Area) > 1e6 &
+           BIOME != "M") %>%
   select(!ends_with("_F"))
 
 
@@ -52,7 +53,7 @@ st_write(cpcad_filtered,
          driver = "ESRI Shapefile")
 
 ##data from the bcmaps package
-library(bcmaps)
+
 
 bounds_name <- here::here("data", "shapefiles", "bc_boundary_simplified.shp")
 
@@ -72,7 +73,7 @@ if (!file.exists(bounds_name)) {
            dsn = here::here("data", "shapefiles"), 
            layer = "bc_boundary_simplified.shp",
            driver = "ESRI Shapefile")
-
+  
 }
 
 bec_name <- here::here("data", "shapefiles", "bec_zones.shp")
@@ -110,3 +111,7 @@ if (!file.exists(bec_name)) {
            layer = "bec_zones.shp",
            driver = "ESRI Shapefile")
 }
+
+plot(bounds %>% st_geometry())
+
+terr_parks <- st_intersection(cpcad_bc, bounds)

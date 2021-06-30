@@ -43,6 +43,8 @@ library(here)
 library(bookdown)
 library(tidyverse)
 
+
+
 # generate package citations
 #loaded_pkgs = (.packages())
 #base_pkgs = getOption("defaultPackages")
@@ -53,55 +55,252 @@ library(tidyverse)
 
 # Introduction
 
-Protected areas (hereafter PAs) are an integral component of biological conservation designed to preserve ecosystem services and biodiversity both inside the PAs and in some cases the surrounding regions [@chapeMeasuringExtentEffectiveness2005; @watsonPerformancePotentialProtected2014]. The Aichi biodiversity targets, set in 2010, called to protect 17% of the global terrestrial area by 2020 [@cbd2010]. While this goal was not fully realized, with only 15% of the globe deemed protected as of of 2020 [@unep-wcmcProtectedPlanetDigital2020]. The previous decade's targets recognized the goal of protecting 10% of each ecoregion, in order to ensure adequate representation of ecosystems across the globe [@cbd2004].
+## Ecological Integrity
 
-As highlighted by the Aichi targets, goals for conservation protection are commonly based on the proportion of area protected, due in part to its ease of use and calculation [@chapeMeasuringExtentEffectiveness2005; @cbd2010]. However, while the area protected is a simple metric to report on, it is not always the most effective metric, as it does not consider the effectiveness of the PAs to protect the inherent ecosystem services in the area [@chapeMeasuringExtentEffectiveness2005]. In fact, many studies do not consider areal percentages to be an effective way to manage for biodiversity protection [@butchart2015], and if area is used it would require much larger proportions of the global terrestrial area to be protected, up to 50% by ecoregion [@dinersteinEcoregionBasedApproachProtecting2017; @butchart2015].
+Protected areas (hereafter PAs) are an integral component of biological conservation designed to preserve ecosystem services and biodiversity both inside the PAs and in some cases the surrounding regions [@chapeMeasuringExtentEffectiveness2005; @watsonPerformancePotentialProtected2014]. The Aichi biodiversity targets, set in 2010, called to protect 17% of the global terrestrial area by 2020 [@cbd2010], but as of 2020, only 15% of the globe was deemed protected [@unep-wcmcProtectedPlanetDigital2020]. The previous decade's targets set the goal of protecting 10% of each global ecoregion, in order to ensure adequate representation of ecosystems across the globe [@cbd2004].
 
-The province of British Columbia, Canada, has an area of 94.4 million hectares, which can be further subdivided into the fourteen unique ecosystems that make up the biogeclimatic ecosystem classification (BEC) system. These ecosystems are delineated based on climate, climax vegetation species, and soil using similar methods to other ecosystem classification approaches used across the globe [@pojarBiogeoclimaticEcosystemClassification1987]. These BEC zones are further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. Using representation of these BEC ecosystems as the target, approximately 15% of the available terrestrial area is protected. However, PAs are not evenly distributed in the BEC system, with high elevation and mountainous BEC zones having a higher proportion of PAs than lower elevation BEC zones, whose more productive ecosystems are less frequently represented [@environmentalreportingbc2016].
+As highlighted by the Aichi targets, goals for conservation protection are commonly based on the proportion of area protected, due in part to its ease of use and calculation [@chapeMeasuringExtentEffectiveness2005; @cbd2010]. However, while the area protected is a simple metric to report on, it is not always the most effective metric, as it does not convey how effective a given PA is for protecting the inherent ecosystem services in the area [@chapeMeasuringExtentEffectiveness2005]. In fact, many studies do not consider areal percentages to be an effective metric for indicating biodiversity protection [@butchart2015]; the area metric heavily underestimates the global protected area required to adequately protect biodiversity, which research indicates is up to 50% of each ecoregion [@dinersteinEcoregionBasedApproachProtecting2017; @butchart2015].
 
-In response to issues associated with simply using protected area size as a metric, a number of other methodologies have been developed to evaluate the effectiveness of PAs [@boltonUncoveringRegionalVariability2019; @hansenTrendsVitalSigns2018; @parrishAreWeConserving2003; @gastonEcologicalEffectivenessProtected2006; @gastonEcologicalPerformanceProtected2008]. Ecological integrity, for example, is defined by Parks Canada as an ecosystem having the expected "living and non-living pieces for the region", and that ecological processes should occur in the PA at the expected frequency and intensity for the region [@parkscanadaEcologicalIntegrity2019]. When drilled down, ecological integrity is often subdivided into three components; processes, threats and stressors, and biodiversity [@burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraRemoteSensingConservation2013; @olthofUsingSatelliteRemote2006]. Subsequently, many potential ecological integrity indicator variables have been examined to capture these three components [SOURCES]. These indicators are then interpreted manually or automatically, most often through examining changes in temporal trends within the PAs, or by comparing the indicators to areas in known healthy reference ecosystems [@woodleyMonitoringMeasuringEcosystem1993].
+There are many biogeographic ecosystem classification systems in place across the globe [SOURCE]. These frequently delineate ecosystems based on climate, topography, and vegetation communities [SOURCE]. British Columbia has designed and implemented the Biogeoclimatic Ecosystem Classification (BEC) system, which divides the province into 16 zones based on climate, topography, and late-successional vegetation [SOURCE]. While each BEC zone is represented in the PA system, some zones have higher representation than others, with high spatial variation in PA locations in certain zones, such as coastal western hemlock [@environmentalreportingbcProtectedLandsWaters2016].
 
-Most recently, satellite remote sensing is being used to derive indicators to assess PA effectiveness for managing ecological integrity [@boltonUncoveringRegionalVariability2019; @burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraParksWorkImpact2008; @nagendraParksWorkImpact2008; @olthofUsingSatelliteRemote2006; @parmenterLandUseLand2003; @soverelCharacterizingForestFragmentation2010]. In a detailed review, Nagendra [-@nagendraRemoteSensingConservation2013] highlighted the wide range of data sources and potential uses of remote sensing data for conservation monitoring. The opening of the Landsat archive in 2008 [@wulderOpeningArchiveHow2012] has played a significant role in the use of satellite imagery in conservation monitoring [@nagendraParksWorkImpact2008]. The length of the satellite archive since 1972 allows for assessment of temporal trends in satellite derived indicator variables [@boltonUncoveringRegionalVariability2019; @nagendraRemoteSensingConservation2013; @hansenTrendsVitalSigns2018], while the global coverage of many satellite data sources allows for comparisons between ecosystems [@nagendraParksWorkImpact2008; @wulderOpeningArchiveHow2012]. Exploiting both this temporal archive and spatial comprehensiveness, Landsat derived ecological integrity indicators have been applied across a wide range of PAs globally, including metrics of forest disturbances [@boltonUncoveringRegionalVariability2019], forest fragmentation [@soverelCharacterizingForestFragmentation2010], and land cover change [@fraserMonitoringLandCover2009; @olthofUsingSatelliteRemote2006].
+In response to issues associated with simply using protected area size as a metric, a number of other methodologies have been developed to evaluate the effectiveness of PAs [@boltonUncoveringRegionalVariability2019; @hansenTrendsVitalSigns2018; @parrishAreWeConserving2003; @gastonEcologicalEffectivenessProtected2006; @gastonEcologicalPerformanceProtected2008]. Ecological integrity, for example, is defined by Parks Canada as an ecosystem having the expected "living and non-living pieces for the region", and that ecological processes should occur in the PA at the expected frequency and intensity for the region [@parkscanadaEcologicalIntegrity2019]. When drilled down, ecological integrity is often subdivided into three components; processes, threats and stressors, and biodiversity [@burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraRemoteSensingConservation2013; @olthofUsingSatelliteRemote2006]. Subsequently, many potential ecological integrity indicator variables have been examined to capture these three components [@hansenTrendsVitalSigns2018]. These indicators are then interpreted manually or automatically, most often through examining changes in temporal trends within the PAs or by comparing the indicators to areas in known healthy reference ecosystems [@woodleyMonitoringMeasuringEcosystem1993].
 
-While Landsat provides an excellent dataset for picturing the environment in 2D (e.g. land cover, disturbances), recent developments in airborne laser scanning allow for very detailed and accurate depictions of the 3D forest structure. One common problem associated with these airborne laser scanning datasets is their often limited spatial and temporal coverages. By combining airborne laser scanning with the Landsat archive, these structural datasets can be imputed across time and space, providing coverage far beyond the initial spatial coverage of the LiDAR acquisitions [@matasciThreeDecadesForest2018; @coops2021]. The Landsat archive can now provide researchers and end-users with high quality datasets including land cover [@hermosillaDisturbanceInformedAnnualLand2018], forest disturbances [@hermosillaRegionalDetectionCharacterization2015], and forest structure [@matasciThreeDecadesForest2018]. These new datasets can allow researchers to monitor additional ecological integrity indicator variables across large regions and time, as well as comparing between PAs and non-protected areas.
+## Remote Sensing
 
-Insights provided by these new remote sensing datasets, informed by structure and disturbance can allow British Columbia to continue to assess the effectiveness of the BEC zones as a strata for PA ecological integrity. Due to the spatial variation in PA locations within BEC zones, it becomes important to consider if the PAs within a given BEC zone actually represent conditions throughout the remainder of the BEC zone, especially considering the tendency of PAs to be placed in lower productivity environments [@environmentalreportingbcProtectedLandsWaters2016].
+Most recently, satellite remote sensing (see Section \@ref(data) for more detailed information) is being used to derive indicators to assess PA effectiveness for monitoring ecological integrity [@boltonUncoveringRegionalVariability2019; @burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraParksWorkImpact2008; @olthofUsingSatelliteRemote2006; @parmenterLandUseLand2003; @soverelCharacterizingForestFragmentation2010]. Remote sensing has demonstrated success in predicting ecosystem processes, threats and stressors, and biodiversity [@nagendraRemoteSensingConservation2013; @turner2003]. In the case of processes, natural ecosystem disturbance regimes such as fire and flooding are frequently monitored from satellite imagery [@boltonUncoveringRegionalVariability2019; @hermosillaRegionalDetectionCharacterization2015; @alsdorf2007; @kerr2003], and other biogeochemcial processes can be observed through measures of carbon sinks [@myneni2001], vegetation productivity [@running2004], and vegetation dynamics [@zhang2003]. Ecosystem threats and stressors can also be monitored through remote sensing, by examining processes such as human development and urbanization [@schneider2009], forest harvesting [@nagendraParksWorkImpact2008], invasive species [@kerr2003; @he2011], and habitat fragmentation [@pôças2011; @soverelCharacterizingForestFragmentation2010]. While it can be difficult to directly monitor biodiversity using satellite remote sensing [@nagendra2001; @gillespie2008; @turner2003], a number of methods have been developed to indirectly measure biodiversity, namely: canopy species mapping [@nagendra2001], habitat classification [@lucas2011; @mcdermid2005], examining spectral information (and indices such as NDVI) [@gillespie2005; @feeley2005; @nagendra2010], spectral heterogeneity [@rocchini2010], ecosystem structure [@cohen2004; @goetz2007; @pôças2011; @soverelCharacterizingForestFragmentation2010], and function [@skidmore2021] can all be used to indirectly infer biodiversity.
 
-In this paper we will examine satellite derived ecological integrity indicator variables throughout protected areas in British Columbia. Land cover, forest structure, and forest disturbances will be compared between protected and non protected areas across the entire terrestrial area in British Columbia at two spatial scales, the BEC zone, and the BEC subzone. Land cover and disturbances will be examined at the BEC zone scale, while forest structural attributes will be compared at the BEC subzone scale.
+In recent years, many studies monitoring ecological integrity or related indicators using remotely sensed data are heavily relying on free and open-source data [@boltonUncoveringRegionalVariability2019; @fraserMonitoringLandCover2009; @soverelCharacterizingForestFragmentation2010; @pôças2011; @skidmore2021]. By leveraging this cost-free data, conservation scientists are able to conduct studies across an entire jurisdiction's PA network and examine temporal changes in protected areas [@buchanan2018; @turner2015]. These changes can then be compared to unprotected areas, allowing for researchers and park managers to gauge the effectiveness of a given PA or the entire PA network [@boltonUncoveringRegionalVariability2019; @soverelCharacterizingForestFragmentation2010; @turner2015]. This methodological framework offers an improvement over using ecoregional (or global) area based approaches, in that it provides a better understanding of the efficacy of protected areas.
+
+## Gaps and their filling
+
+-   Leverage open data to examine ecological integrity in BC PAs
+
+-   Compare these to nPAs (non-protected areas) at multiple scales, using t-test
+
+    -   BEC Zone scale for land cover and distrubance
+
+        -   Note that these have been previously explored
+
+    -   SUbzones for structural attributes
+
+        -   to my knowledge not explored yet
+
+-   results will
+
+    -   inform parks management on which bec zones accurately represent their environments
+
+    -   allow parks management to see what types of forest structures are missing from the PA network
+
+    -   provide novel information on the status of protected area forest structural attributes
 
 # Methods
 
 ## Study Area
 
-The area examined in this study includes all of terrestrial British Columbia. This area was subdivided into BEC zones, and further into subzones for analysis. This allowed for the comparison of PA to non-protected areas (Figure \@ref(fig:study-area)).
+The area examined in this study includes all of terrestrial British Columbia. This area was subdivided into BEC zones, and further into BEC subzones for analysis. This allowed for the comparison of PA to unprotected areas (Figure \@ref(fig:study-area)). Parks and Protected Areas in British Columbia were selected for this analysis using similar criteria to @boltonUncoveringRegionalVariability2019. Protected areas were only considered protected in this analysis if they were greater than 100ha in size, and belonged to IUCN categories Ia-IV.
 
 ```{r study-area, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Map of terrestrial British Columbia including BEC zones and the location of PAs used in this study.")
 knitr::include_graphics(here::here("outputs", "bec_map.png"))
 ```
 
+### Parks and Protected Areas
+
+The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variation in size. Within this network, there are hundreds of parks, taking up 15.4% of the total terrestrial area of British Columbia [947,654km^2^; @environmentalreportingbcProtectedLandsWaters2016]. Both the British Columbian and Canada-wide protected areas mandates commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in Section \@ref(ecological-integrity) [@governmentofcanada2019; @bcparks2012] . Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbcProtectedLandsWaters2016].
+
+Acquire from <https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip>
+
+### BEC Zones and Subzones
+
+The province of British Columbia, Canada, has an area of 94.4 million hectares, which can be subdivided into sixteen unique ecosystem zones that make up British Columbia's Biogeoclimatic Ecosystem Classification (BEC) system. These classifications are delineated based on climate, climax vegetation species, and soil using similar methods to other ecosystem classification approaches used across the globe [@pojarBiogeoclimaticEcosystemClassification1987]. These BEC zones are further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987].
+
+Acquired using the **bcmaps** R package.
+
 ## Data
 
-## Parks and Protected Areas
+The opening of the Landsat archive in 2008 [@wulderOpeningArchiveHow2012] has played a significant role in the use of satellite imagery in conservation monitoring [@nagendraParksWorkImpact2008; @turner2015]. The availability of the satellite archive since 1972 allows for assessment of temporal trends in satellite derived indicator variables [@boltonUncoveringRegionalVariability2019; @nagendraRemoteSensingConservation2013; @hansenTrendsVitalSigns2018], while the global coverage of many satellite data sources allows for comparisons between similar and differing ecosystems [@nagendraParksWorkImpact2008; @wulderOpeningArchiveHow2012]. Exploiting both this temporal archive and spatial comprehensiveness, Landsat derived ecological integrity indicators have been applied across a wide range of PAs globally, including metrics of forest disturbances [@boltonUncoveringRegionalVariability2019], forest fragmentation [@soverelCharacterizingForestFragmentation2010], and land cover change [@fraserMonitoringLandCover2009; @olthofUsingSatelliteRemote2006].
 
-### Forest Disturbances
+With multiple images available for a given region for all portions of the year, a recent development in satellite remote sensing has been to create best-available-pixel (BAP) composites. These composites include the best single observation at each pixel for the catalog of available scenes, within certain temporal bounds such as seasons [@whitePixelBasedImageCompositing2014]. This allows for the examination of trends on a yearly basis with high quality data, removing most missing data such as clouds, shadows, and sensor errors [@whitePixelBasedImageCompositing2014]. This method does however have drawbacks: the revisit time of many sensors (e.g. Landsat's 16 day revisit time) makes it difficult to compare a region intra-annually.
 
-Forest disturbance metrics were generated by @hermosillaMassDataProcessing2016 for the period if 1985-2019 using the free and open data from the Landsat archive. To delineate forest disturbances, the normalized burn ratio from Canada wide best-available-pixel composites [@whitePixelBasedImageCompositing2014; @hermosillaMassDataProcessing2016] was used to track forest disturbances. @hermosillaMassDataProcessing2016 used breakpoint (temporal) and contextual (spatial) analysis to ensure that changes were detected in the correct year [@hermosillaRegionalDetectionCharacterization2015]. These changes were then classified into a change type (fire, harvesting, road, and non-stand replacing) via the object based image analysis approach described in @hermosillaRegionalDetectionCharacterization2015.
+While Landsat provides an excellent dataset for picturing the environment in 2D (e.g. land cover, disturbances), airborne laser scanning allow for very detailed and accurate depictions of the 3D forest structure [@wulderLidarSamplingLargearea2012]. One common problem associated with these airborne laser scanning datasets is their often limited spatial and temporal coverages. By combining airborne laser scanning with BAPs generated from the Landsat archive, these structural datasets can be imputed across time and space, providing coverage far beyond the initial spatial coverage of the LiDAR acquisitions [@matasciThreeDecadesForest2018; @coops2021]. The Landsat archive can now provide researchers and end-users with high quality, value-added datasets, such as land cover [@hermosillaDisturbanceInformedAnnualLand2018], forest disturbances [@hermosillaRegionalDetectionCharacterization2015], and 3D forest structure [@matasciThreeDecadesForest2018].
 
 ### Land Cover
 
-Land cover information for Canada from 1984-2019 was produced following @hermosillaDisturbanceInformedAnnualLand2018 using the Virtual Land Cover Engine framework. It includes eleven land cover classes, all of which are present in British Columbia. To accomplish this, an annual best-avaialble-pixel surface reflectance image composite was create from Landsat imagery @hermosillaMassDataProcessing2016, taking into consideration the annual forest changes generated while using the Composite 2 Change approach [@hermosillaMassDataProcessing2016]. To classify the land cover, a random forest claassifer was used on the input image composites, and a Hidden Markov Model was applied to ensure logical land cover transitions [@hermosillaDisturbanceInformedAnnualLand2018].
+Land cover information for Canada from 1984-2019 was produced following @hermosillaDisturbanceInformedAnnualLand2018 using the Virtual Land Cover Engine framework. It includes eleven land cover classes, all of which are present in British Columbia. To accomplish this, an annual BAP surface reflectance image composite was created from Landsat imagery [@hermosillaMassDataProcessing2016], taking into consideration the annual forest changes generated while using the Composite 2 Change approach [@hermosillaMassDataProcessing2016]. To classify the BAP composite, a random forest classifier was used, and a Hidden Markov Model was applied to ensure logical land cover transitions [@hermosillaDisturbanceInformedAnnualLand2018].
+
+### Forest Disturbances
+
+Forest disturbance metrics were generated by @hermosillaMassDataProcessing2016 for the period of 1985-2019 using the BAP composites generated by @hermosillaMassDataProcessing2016. Forest disturbances were delineated by examining changes in the normalized burn ratio through time [@whitePixelBasedImageCompositing2014; @hermosillaMassDataProcessing2016]. @hermosillaMassDataProcessing2016 used breakpoint (temporal) and contextual (spatial) analysis to ensure that changes were detected in the correct year [@hermosillaRegionalDetectionCharacterization2015]. These changes were then classified into a change type (fire, harvesting, road, and non-stand replacing) via the object based image analysis approach described in @hermosillaRegionalDetectionCharacterization2015.
 
 ### Forest Structural Attributes
 
-Forest structure metrics (lorey's height, total aboveground biomass, elevation covariance, and canopy cover) were imputed across the forested area of British Columbia following methods utilized in @matasciThreeDecadesForest2018, on an independant, year-by-year basis. This process utilizes annual Landsat proxy surface reflectance composites across Canada produced following @hermosillaIntegratedLandsatTime2015, the forest disturbance layers produced via @hermosillaRegionalDetectionCharacterization2015, and LiDAR samples collected across the country. Ancilliary data such as topography was also used to fit the models @matasciThreeDecadesForest2018. The forest structure metrics were imputed using a k-NN approach, and generated six LiDAR metrics and four forest inventory attributes in total @matasciThreeDecadesForest2018.
-
-## Study Area
-
-## Preprocessing
+Forest structure metrics (lorey's height, total aboveground biomass, elevation covariance, and canopy cover) were imputed across the forested area of British Columbia following methods utilized in @matasciThreeDecadesForest2018, on an independant, per year basis. This process utilizes annual Landsat proxy surface reflectance composites across Canada produced following @hermosillaIntegratedLandsatTime2015, the forest disturbance layers produced via @hermosillaRegionalDetectionCharacterization2015, and LiDAR samples collected across the country [@matasciThreeDecadesForest2018]. Ancilliary data such as topography was also used to fit the models @matasciThreeDecadesForest2018. The forest structure metrics were imputed using a k-NN approach, and generated six LiDAR metrics and four forest inventory attributes in total [@matasciThreeDecadesForest2018].
 
 ## Analysis
 
+### Forest Structural Attributes
+
+Forest structure metrics (lorey's height, total aboveground biomass, elevation covariance, and canopy cover) were grouped to the BEC subzone level. These metrics were then compared between PAs and to each other using a two sided t-test, after which the Bonferroni correction was applied.
+
+### Land Cover and Forest Disturbances
+
+### Dot Points
+
+-   Mosaiced NTEMS data, with edges of UTM zones removed
+
+-   Forest masks generated from land cover
+
+-   Masked out non-forest pixels from forest structure data using forest masks
+
+-   BEC zones and PAs intersected to determine proportions of each bec zone protected
+
+-   Intersect turned into masks by BEC subzone and PA status
+
+-   Each pixel turned into csv for bec subzone and PA status
+
+    -   Includes: elevation, forest structure (canopy cover, lorey's height, total biomass, canopy structure)\
+        land cover, change attribution, change year, latitude, protected status, subzone, and year of data
+
+-   mean structure for each variable and bec zone and PA status generated
+
+-   equal random sample of forested pixels generated for PA and nPA for forest structure attributes
+
+    -   2 sided t-tests ran; bonferroni correction applied
+
+-   Land cover aggregated by protected status and elevation
+
+-   BEC coverage aggregated by protected status and elevation
+
+-   disturbances aggregated by protected status and LATITUDE *pew pew*
+
+# Results
+
+## Provincial Results
+
+```{r bec-conch, fig.cap = fig_cap, echo = FALSE, message = FALSE}
+bec_perc_prot <- read_csv(here::here("outputs", "bec_prop_protected.csv"))
+
+bec_perc_prot <- bec_perc_prot %>% arrange(perc)
+
+small <- bec_perc_prot %>% head(1)
+
+big <- bec_perc_prot %>% tail(1)
+
+fig_cap <- paste("Diagram of proportion of the area of each BEC zone protected. Red dotted line indicates 2020 global protected area coverage goal, Blue dotted line indicates 2010 ecoregional protected area coverage goal, and the green dotted line indicates the overall proportion of protected areas in British Columbia.")
+
+
+knitr::include_graphics(here::here("outputs", "bec_conch.png"))
+```
+
+Figure \@ref(fig:bec-conch) shows the proportion of each BEC zone that is protected in terrestrial BC, as well as indicator lines for the Aichi Biodiversity Target 11 (17%), the 2010 ecoregional protected area coverage goal (10%), and the overall proportion of protected areas in BC (15.4%). Eleven of the sixteen BEC zones met the 2010 ecoregional target, with `r big %>% pull(zone_nm)` having `r big %>% pull(perc) %>% round(digits = 3) * 100`% of terrestrial area protected. `r small %>% pull(zone_nm)` was the least protected by area, with `r small %>% pull(perc) %>% round(digits = 3) * 100`% protected. Overall, British Columbia did not meet the Aichi biodiversity target, having protected only 15.4% of the available terrestrial area, rather than 17%.
+
+```{r bec-elev, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Proportion of BEC zone by elevation for both protected areas (left), and unprotected areas (centre). The rightmost figure represents the proportion of terrestrial area that is protected at each elevation.")
+knitr::include_graphics(here::here("outputs", "bec_elev.png"))
+```
+
+Figure \@ref(fig:bec-elev) shows proportion of BEC Zone coverage by elevation in protected and unprotected areas, as well as the percentage of area protected by elevation. As elevation increases, more of the terrestrial area is protected until \~4000m, where 100% of the area is protected above this elevation. High elevation PAs are dominated by the BAFA BEC zone, while unprotected areas consist primarily of the CMA BEC Zone. At lower elevations, CWH is more prevalent in PAs, while BWBS is more common in similar elevations.
+
+```{r vlce-conch, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Diagram of proportion of the area of each land cover class protected. Red dotted line indicates 2020 global protected area coverage goal, Blue dotted line indicates 2010 ecoregional protected area coverage goal, and the green dotted line indicates the overall proportion of protected areas in British Columbia.")
+knitr::include_graphics(here::here("outputs", "vlce_conch.png"))
+```
+
+Figure \@ref(fig:vlce-conch) shows...
+
+```{r lcc-elev, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Proportion of each land cover class by elevation for both protected areas (left), and unprotected areas (centre). The rightmost figure represents the proportion of terrestrial area that is protected at each elevation.")
+knitr::include_graphics(here::here("outputs", "lcc_elev.png"))
+```
+
+Figure \@ref(fig:lcc-elev) indicates...
+
+```{r lat-dist, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Proportion of area disturbed by latitude from 1984 to 2019 in protected areas (left), and unprotected areas (centre). The rightmost figure represents the proportion of terrestrial area that is protected at each latitude.")
+knitr::include_graphics(here::here("outputs", "latitude_disturbance_plot.png"))
+```
+
+Figure \@ref(fig:lat-dist) indicates...
+
+```{r structure-scatter, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Scatterplots of average BEC subzone forest structure attributes in protected (x-axis), and unprotected (y-axis) areas of British Columbia")
+knitr::include_graphics(here::here("outputs", "structure_scatter.png"))
+```
+
+Figure \@ref(fig:structure-scatter) indicates...
+
+```{r structure-3d-scatter, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("3d vector diagram of BEC zones average forest structure attributes across British Columiba. Dots indicate the protected area means, and arrow points indicate unprotected area means.")
+knitr::include_graphics(here::here("outputs", "zones_3d_scatter.png"))
+```
+
+Figure \@ref(fig:structure-3d-scatter) indicates...
+
+```{r t-test-plot, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Proportion of subzones in each BEC zone which have significant p-values from a two-tailed t-test with the Bonferroni correction applied.")
+knitr::include_graphics(here::here("outputs", "t_tests_scatter.png"))
+```
+
+Figure \@ref(fig:t-test-plot) indicates...
+
+```{r fw-scatter, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Scatterplots of forest (left) and wetland (right) proportions in protected areas (x-axis) and unprotected areas (y-axis).")
+knitr::include_graphics(here::here("outputs", "forest_wetland_scatter.png"))
+```
+
+Figure \@ref(fig:fw-scatter) indicates...
+
+## Vignette: Coastal Douglas Fir
+
+```{r cdf-boxplot, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Boxplots of forest structural attributes in the Coastal Douglas Fir BEC zone. Significance denoted with *. (SIGNIFICANCE NOT CURRENTLY IMPLEMENTED).")
+knitr::include_graphics(here::here("outputs", "vignette_boxplot.png"))
+```
+
+Figure \@ref(fig:cdf-boxplot) indicates...
+
+```{r cdf-density, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Density diagrams of forest structural attributes in the Coastal Douglas Fir BEC zone. Significance denoted with *. (SIGNIFICANCE NOT CURRENTLY IMPLEMENTED).")
+knitr::include_graphics(here::here("outputs", "vignette_colour_density.png"))
+```
+
+Figure \@ref(fig:cdf-density) indicates...
+
+# Discussion
+
+*\#\#\#i think this can be in the discussion as sort of limitations*
+
+While not all aspects of ecological integrity can be effectively monitored from space, those that can provide powerful insights into the effectiveness of PAs when examined spatially (when compared to unprotected areas), or temporally [@woodleyMonitoringMeasuringEcosystem1993].
+
+Future research: temporal, index of forest structure compared to nPA, compare to local envmt (bolton paper) but in forest structure context
+
+# Writing I may use in the future
+
+Insights provided by remote sensing datasets can allow British Columbia to continue to assess the effectiveness of the BEC zones as a strata for PA ecological integrity. Due to the spatial variation in PA locations within BEC zones, it becomes important to consider if the PAs within a given BEC zone actually represent conditions throughout the remainder of the BEC zone, especially considering the tendency of PAs to be placed in lower productivity environments [@environmentalreportingbcProtectedLandsWaters2016].
+
 \newpage
 
-## References
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+\newpage
+
+# (APPENDIX) APPENDIX {.unnumbered}
+
+# Appendix A -- Unused Figures {.unnumbered}
+
+```{r bec-donut, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Donut diagram of the BEC proportions in protected areas (interior), and unprotected areas (exterior) in British Columbia.")
+knitr::include_graphics(here::here("outputs", "bec_double_donut.png"))
+```
+
+Figure \@ref(fig:bec-donut) indicates...
+
+```{r vlce-donut, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Donut diagram of the land cover class proportions in protected areas (interior), and unprotected areas (exterior) in British Columbia.")
+knitr::include_graphics(here::here("outputs", "vlce_double_donut.png"))
+```
+
+Figure \@ref(fig:vlce-donut) indicates...
