@@ -5,13 +5,13 @@ author: |
   | *email*: evanmuise@gmail.com
 date: "`r format(Sys.time(), '%Y-%B-%d')`"
 output:
-  bookdown::pdf_document2:
+  bookdown::word_document2:
+    reference_docx: my-styles.docx
     fig_caption: yes
     number_sections: yes
     toc: yes
     keep_tex: true
-  bookdown::word_document2:
-    reference_docx: my-styles.docx
+  bookdown::pdf_document2:
     fig_caption: yes
     number_sections: yes
     toc: yes
@@ -33,6 +33,9 @@ header-includes:
 - \usepackage[left]{lineno}
 - \linenumbers
 - \usepackage[document]{ragged2e}
+editor_options:
+  markdown:
+    canonical: true
 ---
 
 ```{R, include = FALSE}
@@ -109,9 +112,9 @@ knitr::include_graphics(here::here("outputs", "bec_map.png"))
 
 ### Parks and Protected Areas
 
-Boundaries for all parks and protected areas in British Columbia were obtained from The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variation in size. Within this network, there are hundreds of parks, taking up 15.4% of the total terrestrial area of British Columbia [947,654km^2^; @environmentalreportingbcProtectedLandsWaters2016]. Both the British Columbian and Canada-wide protected areas mandates commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in Section \@ref(ecological-integrity) [@governmentofcanada2019; @bcparks2012]. Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbcProtectedLandsWaters2016].
+The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variations in size. Both the British Columbian and Canada-wide protected areas mandates commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in Section \@ref(ecological-integrity) [@governmentofcanada2019; @bcparks2012]. Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbcProtectedLandsWaters2016].
 
-Acquire from <https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip>
+Boundaries for all parks and protected areas in British Columbia were obtained from the Canadian Protected and Conserved Areas Database (available from [<https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip>](https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip){.uri}). This database contains spatial coverage of all PAs in Canada as of December 2020, and includes the IUCN classification for each PA. Protected areas were selected to be suitable for analysis following similar criteria to @boltonUncoveringRegionalVariability2019. Only parks which belonged to IUCN classes Ia, Ib, II, and IV were selected, as these categories are considered strictly protected. Protected areas smaller than 100ha in size were also excluded from the analysis. After selection, there were 745 suitable parks under managed under various jurisdictions (provincial, federal, NGOs), which take up 15.4% of the total terrestrial area of British Columbia [947,654km^2^; @environmentalreportingbcProtectedLandsWaters2016].
 
 ## Data
 
