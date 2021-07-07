@@ -7,7 +7,7 @@ output: html_document
 
 Setup!
 
-```{r}
+```{r setup}
 library(tidyverse) # in use
 library(tidymodels) # t tests
 library(cowplot) # plot additions
@@ -29,7 +29,7 @@ source(here::here("scripts", "get_keys.R"))
 
 Merged DF methods
 
-```{r message=FALSE}
+```{r process, message=FALSE}
 full_dfs <- list.files(here::here("data", "all_vars"), 
                        pattern = ".csv", full.names = T)
 
@@ -183,22 +183,22 @@ lat_dist <- bind_rows(map(outs, 7))
 structure <- read_csv(here::here("data", "structure", "structure_means.csv"))
 ```
 
-```{r}
+```{r save}
 save.image(file = here::here("data", "backup.RData"))
 ```
 
-```{r}
+```{r load}
 load(here::here("data", "backup.RData"))
 ```
 
-```{r}
+```{r setup-2}
 elev_agg <- 50
 vlce_colours <- keys$vlce %>% pull(ntems_colour) %>% rev()
 ```
 
 Elevation & Protected/Unprotected (BEC) Figures
 
-```{r}
+```{r elev-bec}
 elev_zone_data <- elev_nw %>% 
   ungroup() %>%
   filter(elev < 32000) %>%
@@ -307,7 +307,7 @@ protected_elev %>%
 
 Elevation & Protected/Unprotected (VLCE) Figures
 
-```{r}
+```{r elev-vlce}
 elev_lcc_nw <- elev_w %>%
   filter(elev < 32000) %>%
   mutate(elev = elev %/% elev_agg * elev_agg) %>%
@@ -339,7 +339,7 @@ ggsave(here::here("outputs", "lcc_elev.png"), plot = mosaic_lcc_plot, device = "
 
 Elevation and Disturbance
 
-```{r}
+```{r elev-dist}
 elev_dist_plot <- elev_dist %>% 
   mutate(elev = elev %/% elev_agg * elev_agg,
          Change_Attribution = ifelse(!(Change_Attribution %in% c(1, 2)), 
@@ -371,7 +371,7 @@ plot_grid(elev_dist_plot, prot_elev_plot_20m,
 
 Donut Plots
 
-```{r}
+```{r donut}
 # disturbance
 change_donut <- change %>%
   mutate(Change_Attribution = ifelse(!(Change_Attribution %in% c(1, 2)), 
@@ -468,7 +468,7 @@ vlce_donut %>%
 
 Figure 1: BEC proportions
 
-```{r}
+```{r bec-prop}
 bec <- vlce %>%
   separate(subzone, into = c("zone", "subzone")) %>%
   group_by(protected, zone) %>%
@@ -620,7 +620,7 @@ vlce %>%
 
 VLCE Conch
 
-```{r}
+```{r vlce-conch}
 vlce_conch_df <- vlce %>%
   group_by(vlce, protected) %>%
   summarize(count = sum(n, na.rm = T)) %>%
@@ -631,7 +631,7 @@ vlce_conch_df <- vlce %>%
   ungroup()
 
 vlce_conch <- vlce_conch_df %>%
-  ggplot(aes(x = fct_reorder(as.factor(vlce), perc), y = perc, fill = fct_reorder(name_clean, vlce, .fun = max))) +
+  ggplot(aes(x = fct_reorder(as.factor(vlce), perc), y = perc, fill = fct_rev(fct_reorder(name_clean, vlce, .fun = max)))) +
   geom_bar(stat = "identity") +
   geom_hline(aes(yintercept = 0.17, colour = "2020 Biodiversity Target (Global)"), lty = "dotted", size = 1) +
   geom_hline(aes(yintercept = 0.10, colour = "2010 Biodiversity Target (Ecoregions)"), lty = "dotted", size = 1) +
@@ -639,7 +639,7 @@ vlce_conch <- vlce_conch_df %>%
   geom_text(aes(x = 1, y = .12), label = "10%", colour = "black") +
   geom_text(aes(x = 1, y = .19), label = "17%") +
   scale_colour_aaas() +
-  scale_fill_manual(values = vlce_colours) +
+  scale_fill_manual(values = rev(vlce_colours)) +
   coord_polar() +
   theme_void() + 
   theme(axis.line = element_blank(),
@@ -649,7 +649,9 @@ vlce_conch <- vlce_conch_df %>%
         #legend.position = "bottom",
         legend.box = "vertical") +
   labs(fill = NULL,
-       colour = NULL)
+       colour = NULL) +
+  guides(fill = guide_legend(order = 2),
+         colour = guide_legend(order = 1))
   
 ggsave(here::here("outputs", "vlce_conch.png"), plot = vlce_conch, device = "png")
 ```
@@ -658,7 +660,7 @@ ggsave(here::here("outputs", "vlce_conch.png"), plot = vlce_conch, device = "png
 
 T-Test Plots
 
-```{r}
+```{r t-tests}
 t_tests_zonal <- t_tests %>%
   separate(subzone, into = c("zone", "subzone")) %>% 
   mutate(sig0.05 = ifelse(p.value < 0.05, T, F),
@@ -689,7 +691,7 @@ ggsave(here::here("outputs", "t_tests_scatter.png"), plot = t_tests_scatter, dev
 
 Structure 3D Plot
 
-```{r}
+```{r 3d-structure-subzone}
 library(plot3D) # in use for 3d plot
 library(plot3Drgl) # not in use
 library(gridGraphics) # probably in use
@@ -750,7 +752,7 @@ ggsave(here::here("outputs", "subzones_3d_scatter.png"),
 
 ```
 
-```{r}
+```{r 3d-structure-zone}
 
 for_arrows_zone <- structure %>%
   separate(subzone, into = c("zone", "subzone")) %>%
@@ -808,7 +810,7 @@ ggsave(here::here("outputs", "zones_3d_scatter.png"),
 
 structure scatterplots
 
-```{r}
+```{r structure-scatter}
 structure_scatter <- structure %>% 
   dplyr::select(!c(starts_with("sd"), "count")) %>%
   pivot_longer(starts_with("mean"), 
@@ -833,7 +835,12 @@ ggsave(here::here("outputs", "structure_scatter.png"),
 
 Latitude Disturbance
 
-```{r}
+```{r lat-dist}
+bc_bounds <- read_sf(here::here("data", "shapefiles", "bc_boundary.shp"))
+bc_bbox <- bc_bounds %>% st_bbox()
+
+lat_min <- bc_bbox$ymin
+
 lat_agg <- 1000
 
 lat_df <- lat_dist %>% 
@@ -846,7 +853,8 @@ lat_df <- lat_dist %>%
   mutate(perc = count / sum(count),
          Change_Attribution = case_when(Change_Attribution == 1 ~ "Fire",
                                         Change_Attribution == 2 ~ "Harvest",
-                                        TRUE ~ "None")) 
+                                        TRUE ~ "None")) %>%
+  mutate(latitude = (latitude * 30) + lat_min)
 
 dist_colours <-  pal_igv("default")(3)[c(2, 3, 1)]
 
@@ -894,7 +902,7 @@ ggsave(here::here("outputs", "latitude_disturbance_plot.png"),
 
 overall vlce for more t tests maybe?
 
-```{r}
+```{r forest-wetland}
 forest <- vlce %>%
   left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
   group_by(protected, subzone, forest) %>%
@@ -941,7 +949,7 @@ ggsave(here::here("outputs", "forest_wetland_scatter.png"), plot = f_w_scatter,
 ```
 
 
-```{r}
+```{r map}
 bec_sf <- read_sf(here::here("data", "shapefiles", "bec_zones.shp"))
 
 bec_zones <- aggregate(x = bec_sf$are_sqm, by = list(bec_sf$zone),
@@ -982,7 +990,7 @@ ggsave(here::here("outputs", "bec_map.png"), plot = map, device = "png")
 
 zoomed vignette section
 
-```{r}
+```{r vignette}
 
 name2 <- "CDF_mm"
 name <- "ESSF_wvp"
@@ -1027,7 +1035,7 @@ subzone_formatted %>%
   scale_fill_scico_d(name = "Quartiles", alpha = 0.75)
 ```
 
-```{r}
+```{r cdf}
 vlce_colours <- keys$vlce %>% pull(ntems_colour)
 
 cdf_sample <- read_csv(here::here("data", "all_vars", "sampled", "CDF_mm-2015.csv"))
@@ -1067,11 +1075,34 @@ cdf_vlce %>%
   lims(x = c(0, 0.6),
        y = c(0, 0.6))
 
+cdf_vlce %>%
+  ggplot(aes(x = fct_reorder(as.factor(vlce), perc), y = perc, fill = fct_rev(fct_reorder(name_clean, vlce, .fun = max)))) +
+  geom_bar(stat = "identity") +
+  geom_hline(aes(yintercept = 0.17, colour = "2020 Biodiversity Target (Global)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.10, colour = "2010 Biodiversity Target (Ecoregions)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.154, colour = "Total BC Proportion Protected (15.4%)"), lty = "dotted") +
+  geom_text(aes(x = 1, y = .12), label = "10%", colour = "black") +
+  geom_text(aes(x = 1, y = .19), label = "17%") +
+  scale_colour_aaas() +
+  scale_fill_manual(values = rev(vlce_colours)) +
+  coord_polar() +
+  theme_void() + 
+  theme(axis.line = element_blank(),
+        axis.title = element_blank(), 
+        axis.ticks = element_blank(), 
+        axis.text.y = element_blank(),
+        #legend.position = "bottom",
+        legend.box = "vertical") +
+  labs(fill = NULL,
+       colour = NULL) +
+  guides(fill = guide_legend(order = 2),
+         colour = guide_legend(order = 1))
+
 cdf_dist <- egg()
 
 dist_colours <-  pal_igv("default")(3)[c(2, 3, 1)]
 
-cdf_all %>%
+cdf_conch <- cdf_all %>%
   group_by(protected, Change_Attribution) %>%
   summarize(count = n()) %>%
   ungroup() %>%
@@ -1097,6 +1128,7 @@ cdf_all %>%
                              title.hjust = 0.5)) +
   scale_fill_manual(values = dist_colours)
 
-cdf_all %>% pull(elev) %>% max()
+ggsave(here::here("outputs", "cdf_conch.png"), plot = cdf_conch, device = "png")
+
 ```
 

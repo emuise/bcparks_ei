@@ -1,17 +1,17 @@
 ---
-title: 'Protected Areas, BEC Zones, and NTEMS Data: The British Columbian System (Working Title)'
+title: 'An ecoregional approach to protected area monitoring using satellite remote sensing in British Columbia'
 author: |
   | Evan Muise
   | *email*: evanmuise@gmail.com
 date: "`r format(Sys.time(), '%Y-%B-%d')`"
 output:
-  bookdown::word_document2:
-    reference_docx: my-styles.docx
+  bookdown::pdf_document2:
     fig_caption: yes
     number_sections: yes
     toc: yes
     keep_tex: true
-  bookdown::pdf_document2:
+  bookdown::word_document2:
+    reference_docx: my-styles.docx
     fig_caption: yes
     number_sections: yes
     toc: yes
@@ -23,9 +23,8 @@ output:
     toc_float: yes
   html_document: default
   pdf_document: default
-
-bibliography: full_library.bib
-csl: remote-sensing-of-environment.csl
+bibliography: [full_library.bib, packages.bib]
+csl: ecological-applications.csl
 header-includes:
 - \usepackage{float}
 - \floatplacement{figure}{H}
@@ -43,14 +42,16 @@ library(here)
 library(bookdown)
 library(tidyverse)
 
+library(bcmaps)
+
 
 
 # generate package citations
-#loaded_pkgs = (.packages())
-#base_pkgs = getOption("defaultPackages")
-#contrib_pkgs = loaded_pkgs[!(loaded_pkgs %in% base_pkgs)]
-#pkgs_file = here::here("packages.bib")
-#knitr::write_bib(contrib_pkgs, pkgs_file)
+loaded_pkgs = (.packages())
+base_pkgs = getOption("defaultPackages")
+contrib_pkgs = loaded_pkgs[!(loaded_pkgs %in% base_pkgs)]
+pkgs_file = here::here("scripts", "packages.bib")
+knitr::write_bib(contrib_pkgs, pkgs_file)
 ```
 
 # Introduction
@@ -67,9 +68,11 @@ In response to issues associated with simply using protected area size as a metr
 
 ## Remote Sensing
 
-Most recently, satellite remote sensing (see Section \@ref(data) for more detailed information) is being used to derive indicators to assess PA effectiveness for monitoring ecological integrity [@boltonUncoveringRegionalVariability2019; @burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraParksWorkImpact2008; @olthofUsingSatelliteRemote2006; @parmenterLandUseLand2003; @soverelCharacterizingForestFragmentation2010]. Remote sensing has demonstrated success in predicting ecosystem processes, threats and stressors, and biodiversity [@nagendraRemoteSensingConservation2013; @turner2003]. In the case of processes, natural ecosystem disturbance regimes such as fire and flooding are frequently monitored from satellite imagery [@boltonUncoveringRegionalVariability2019; @hermosillaRegionalDetectionCharacterization2015; @alsdorf2007; @kerr2003], and other biogeochemcial processes can be observed through measures of carbon sinks [@myneni2001], vegetation productivity [@running2004], and vegetation dynamics [@zhang2003]. Ecosystem threats and stressors can also be monitored through remote sensing, by examining processes such as human development and urbanization [@schneider2009], forest harvesting [@nagendraParksWorkImpact2008], invasive species [@kerr2003; @he2011], and habitat fragmentation [@pôças2011; @soverelCharacterizingForestFragmentation2010]. While it can be difficult to directly monitor biodiversity using satellite remote sensing [@nagendra2001; @gillespie2008; @turner2003], a number of methods have been developed to indirectly measure biodiversity, namely: canopy species mapping [@nagendra2001], habitat classification [@lucas2011; @mcdermid2005], examining spectral information (and indices such as NDVI) [@gillespie2005; @feeley2005; @nagendra2010], spectral heterogeneity [@rocchini2010], ecosystem structure [@cohen2004; @goetz2007; @pôças2011; @soverelCharacterizingForestFragmentation2010], and function [@skidmore2021] can all be used to indirectly infer biodiversity.
+Most recently, satellite remote sensing (see Section \@ref(data) for more detailed information) is being used to derive indicators to assess PA effectiveness for monitoring ecological integrity [@boltonUncoveringRegionalVariability2019; @burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraParksWorkImpact2008; @olthofUsingSatelliteRemote2006; @parmenterLandUseLand2003; @soverelCharacterizingForestFragmentation2010]. Remote sensing has demonstrated success in predicting ecosystem processes, threats and stressors, and biodiversity [@nagendraRemoteSensingConservation2013; @turner2003]. In the case of processes, natural ecosystem disturbance regimes such as fire and flooding are frequently monitored from satellite imagery [@boltonUncoveringRegionalVariability2019; @hermosillaRegionalDetectionCharacterization2015; @alsdorf2007; @kerr2003], and biogeochemcial processes can be observed through measures of carbon sinks [@myneni2001], vegetation productivity [@running2004], and vegetation dynamics [@zhang2003]. Ecosystem threats and stressors can also be monitored through remote sensing, by examining processes such as human development and urbanization [@schneider2009], forest harvesting [@nagendraParksWorkImpact2008], invasive species [@kerr2003; @he2011], and habitat fragmentation [@pôças2011; @soverelCharacterizingForestFragmentation2010]. While it can be difficult to directly monitor biodiversity using satellite remote sensing [@nagendra2001; @gillespie2008; @turner2003], a number of methods have been developed to indirectly measure biodiversity, namely: canopy species mapping [@nagendra2001], habitat classification [@lucas2011; @mcdermid2005], examining spectral information (and indices such as NDVI) [@gillespie2005; @feeley2005; @nagendra2010], spectral heterogeneity [@rocchini2010], ecosystem structure [@cohen2004; @goetz2007; @pôças2011; @soverelCharacterizingForestFragmentation2010], and function [@skidmore2021] can all be used to indirectly infer biodiversity.
 
 In recent years, many studies monitoring ecological integrity or related indicators using remotely sensed data are heavily relying on free and open-source data [@boltonUncoveringRegionalVariability2019; @fraserMonitoringLandCover2009; @soverelCharacterizingForestFragmentation2010; @pôças2011; @skidmore2021]. By leveraging this cost-free data, conservation scientists are able to conduct studies across an entire jurisdiction's PA network and examine temporal changes in protected areas [@buchanan2018; @turner2015]. These changes can then be compared to unprotected areas, allowing for researchers and park managers to gauge the effectiveness of a given PA or the entire PA network [@boltonUncoveringRegionalVariability2019; @soverelCharacterizingForestFragmentation2010; @turner2015]. This methodological framework offers an improvement over using ecoregional (or global) area based approaches, in that it provides a better understanding of the efficacy of protected areas.
+
+The overall objective of this paper is to leverage open data to examine how PAs in various ecosystems in British Columbia compare to the unprotected regions of the same ecosystems. This will be accomplish by comparing satellite data at various levels of the biogeoclimatic ecosystem classification hierarchy; BEC zones for land cover and forest disturbances, and BEC subzones for forest structural attributes. This will inform parks management on how well the PA network represents the ecosystems across BC, provide novel information on the forest structural attributes in PAs in BC, and determine which forest structures are lacking in the PA network.
 
 ## Gaps and their filling
 
@@ -97,7 +100,7 @@ In recent years, many studies monitoring ecological integrity or related indicat
 
 ## Study Area
 
-The area examined in this study includes all of terrestrial British Columbia. This area was subdivided into BEC zones, and further into BEC subzones for analysis. This allowed for the comparison of PA to unprotected areas (Figure \@ref(fig:study-area)). Parks and Protected Areas in British Columbia were selected for this analysis using similar criteria to @boltonUncoveringRegionalVariability2019. Protected areas were only considered protected in this analysis if they were greater than 100ha in size, and belonged to IUCN categories Ia-IV.
+The province of British Columbia, Canada has an area of 94.4 million hectares - approximate 64% of which is forested [@bcministryofforestsBritishColumbiaForests2003] - which can be subdivided into zones that make up British Columbia's Biogeoclimatic Ecosystem Classification (BEC) system. At it's broadest level, there are 16 zone classifications which are delineated based on broad climate, climax vegetation species, and soil [@pojarBiogeoclimaticEcosystemClassification1987]. These BEC zones are further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. In this paper, zones are used to examine categorical data (land cover and disturbance), while forest structure is compared at the subzone level between PAs and their unprotected counterparts in British Columbia (Figure \@ref(fig:study-area)). Boundaries for BEC zones and subzones were acquired using the bcmaps R package [@R-bcmaps].
 
 ```{r study-area, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Map of terrestrial British Columbia including BEC zones and the location of PAs used in this study.")
@@ -106,15 +109,9 @@ knitr::include_graphics(here::here("outputs", "bec_map.png"))
 
 ### Parks and Protected Areas
 
-The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variation in size. Within this network, there are hundreds of parks, taking up 15.4% of the total terrestrial area of British Columbia [947,654km^2^; @environmentalreportingbcProtectedLandsWaters2016]. Both the British Columbian and Canada-wide protected areas mandates commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in Section \@ref(ecological-integrity) [@governmentofcanada2019; @bcparks2012] . Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbcProtectedLandsWaters2016].
+Boundaries for all parks and protected areas in British Columbia were obtained from The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variation in size. Within this network, there are hundreds of parks, taking up 15.4% of the total terrestrial area of British Columbia [947,654km^2^; @environmentalreportingbcProtectedLandsWaters2016]. Both the British Columbian and Canada-wide protected areas mandates commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in Section \@ref(ecological-integrity) [@governmentofcanada2019; @bcparks2012]. Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbcProtectedLandsWaters2016].
 
 Acquire from <https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip>
-
-### BEC Zones and Subzones
-
-The province of British Columbia, Canada, has an area of 94.4 million hectares, which can be subdivided into sixteen unique ecosystem zones that make up British Columbia's Biogeoclimatic Ecosystem Classification (BEC) system. These classifications are delineated based on climate, climax vegetation species, and soil using similar methods to other ecosystem classification approaches used across the globe [@pojarBiogeoclimaticEcosystemClassification1987]. These BEC zones are further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987].
-
-Acquired using the **bcmaps** R package.
 
 ## Data
 
@@ -199,21 +196,21 @@ fig_cap <- paste("Proportion of BEC zone by elevation for both protected areas (
 knitr::include_graphics(here::here("outputs", "bec_elev.png"))
 ```
 
-Figure \@ref(fig:bec-elev) shows proportion of BEC Zone coverage by elevation in protected and unprotected areas, as well as the percentage of area protected by elevation. As elevation increases, more of the terrestrial area is protected until \~4000m, where 100% of the area is protected above this elevation. High elevation PAs are dominated by the BAFA BEC zone, while unprotected areas consist primarily of the CMA BEC Zone. At lower elevations, CWH is more prevalent in PAs, while BWBS is more common in similar elevations.
+Figure \@ref(fig:bec-elev) shows the proportion of BEC Zone coverage by elevation in protected and unprotected areas, as well as the percentage of area protected by elevation. As elevation increases, more of the terrestrial area is protected until \~4000m, where 100% of the area is protected above this elevation. High elevation PAs are dominated by the BAFA BEC zone, while unprotected areas consist primarily of the CMA BEC Zone. At lower elevations, CWH is more prevalent in PAs, while BWBS is more common in similar elevations.
 
 ```{r vlce-conch, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Diagram of proportion of the area of each land cover class protected. Red dotted line indicates 2020 global protected area coverage goal, Blue dotted line indicates 2010 ecoregional protected area coverage goal, and the green dotted line indicates the overall proportion of protected areas in British Columbia.")
 knitr::include_graphics(here::here("outputs", "vlce_conch.png"))
 ```
 
-Figure \@ref(fig:vlce-conch) shows...
+Figure \@ref(fig:vlce-conch) shows the proportion of each land cover class in PAs. Rock and rubble, snow and ice, and exposed and barren land are overrepresented when compared to the average rate of terrestrial area protection in British Columbia. Mixed wood and broadleaf forests are underrepresented in PAs in British Columbia. All other classes are approximately similar to the average rate of protection in British Columbia (15.4%).
 
 ```{r lcc-elev, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Proportion of each land cover class by elevation for both protected areas (left), and unprotected areas (centre). The rightmost figure represents the proportion of terrestrial area that is protected at each elevation.")
 knitr::include_graphics(here::here("outputs", "lcc_elev.png"))
 ```
 
-Figure \@ref(fig:lcc-elev) indicates...
+Figure \@ref(fig:lcc-elev) shows the proportion of each land cover class' coverage by elevation in protected and unprotected areas, as well as the percentage of area protected by elevation. Snow and ice make up a larger proportion of the protected areas at high altitudes. The only water present at high elevations is found in protected areas, mostly above 3500m. At lower elevations, mixed wood is more prevalent in unprotected areas. Wetland classes are found less frequently at middle elevations (400m-900m) in PAs than in unprotected areas.
 
 ```{r lat-dist, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Proportion of area disturbed by latitude from 1984 to 2019 in protected areas (left), and unprotected areas (centre). The rightmost figure represents the proportion of terrestrial area that is protected at each latitude.")
@@ -259,24 +256,40 @@ knitr::include_graphics(here::here("outputs", "vignette_boxplot.png"))
 
 Figure \@ref(fig:cdf-boxplot) indicates...
 
-```{r cdf-density, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("Density diagrams of forest structural attributes in the Coastal Douglas Fir BEC zone. Significance denoted with *. (SIGNIFICANCE NOT CURRENTLY IMPLEMENTED).")
-knitr::include_graphics(here::here("outputs", "vignette_colour_density.png"))
+```{r cdf-conch, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Diagram of proportion of the area of each land cover class protected in the Coastal Douglas Fir BEC Zone. Red dotted line indicates 2020 global protected area coverage goal, Blue dotted line indicates 2010 ecoregional protected area coverage goal, and the green dotted line indicates the overall proportion of protected areas in British Columbia.")
+knitr::include_graphics(here::here("outputs", "cdf_conch.png"))
 ```
 
-Figure \@ref(fig:cdf-density) indicates...
+Figure \@ref(fig:cdf-conch) shows.... I don't like this one as much although it is good that we're preserving LOTS of our confierous forest in CDF as it's important.
 
 # Discussion
 
 *\#\#\#i think this can be in the discussion as sort of limitations*
 
-While not all aspects of ecological integrity can be effectively monitored from space, those that can provide powerful insights into the effectiveness of PAs when examined spatially (when compared to unprotected areas), or temporally [@woodleyMonitoringMeasuringEcosystem1993].
+-   While not all aspects of ecological integrity can be effectively monitored from space, those that can provide powerful insights into the effectiveness of PAs when examined spatially (when compared to unprotected areas), or temporally [@woodleyMonitoringMeasuringEcosystem1993].
 
-Future research: temporal, index of forest structure compared to nPA, compare to local envmt (bolton paper) but in forest structure context
+-   Shown representation of proportions for bec zones is off, and also changes with elevation in PAs and nPA. Forest structure also differ in some cases. large samples sizes....
+
+-   CDF is underepresented in PA proportions, AND its forest structure is different from the nPA.
+
+-   Future research: temporal, index of forest structure compared to nPA, compare to local envmt (bolton paper) but in forest structure context
 
 # Writing I may use in the future
 
 Insights provided by remote sensing datasets can allow British Columbia to continue to assess the effectiveness of the BEC zones as a strata for PA ecological integrity. Due to the spatial variation in PA locations within BEC zones, it becomes important to consider if the PAs within a given BEC zone actually represent conditions throughout the remainder of the BEC zone, especially considering the tendency of PAs to be placed in lower productivity environments [@environmentalreportingbcProtectedLandsWaters2016].
+
+# Journals
+
+RS for ecology and conservation (<https://rsecjournal.blog/about/>) - IF 5.48, relatively new, but fits perfectly
+
+Ecological Applications (<https://www.resurchify.com/impact/details/20287>) - IF 4.248
+
+Ecological Modelling (<https://www.journals.elsevier.com/ecological-modelling>) - IF 2.497
+
+# Acknowledgments
+
+Add packages for both R and Python here.
 
 \newpage
 
@@ -304,3 +317,10 @@ knitr::include_graphics(here::here("outputs", "vlce_double_donut.png"))
 ```
 
 Figure \@ref(fig:vlce-donut) indicates...
+
+```{r cdf-density, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Density diagrams of forest structural attributes in the Coastal Douglas Fir BEC zone. Significance denoted with *. (SIGNIFICANCE NOT CURRENTLY IMPLEMENTED).")
+knitr::include_graphics(here::here("outputs", "vignette_colour_density.png"))
+```
+
+Figure \@ref(fig:cdf-density) indicates...
