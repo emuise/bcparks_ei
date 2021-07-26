@@ -33,7 +33,11 @@ Merged DF methods
 full_dfs <- list.files(here::here("data", "all_vars"), 
                        pattern = ".csv", full.names = T)
 
+sample_loc <- here::here("data", "all_vars", "sampled")
+dir.create(sample_loc, showWarnings = FALSE)
+
 process_csv <- function(df) {
+  
   print(df)
   
   split <- str_split(df, pattern = "/")
@@ -48,7 +52,7 @@ process_csv <- function(df) {
   cont <- df %>% 
     filter(vlce %in% c(230, 220, 210, 81)) %>% # forested pixels
     filter(Change_Attribution != 2) %>% # filter out harvested pixels
-    select(subzone, protected, elev:total_biomass, vlce)
+    dplyr::select(subzone, protected, elev:total_biomass, vlce)
   
   # for slice_sample in next pipes
   cont_cells <- cont %>% count(protected) %>% pull(n) %>% min()
@@ -62,7 +66,7 @@ process_csv <- function(df) {
       group_by(protected) %>%
       slice_sample(n = cont_cells) # get same no. pixels prot and unprot
     
-    sample_loc <- here::here("data", "all_vars", "sampled")
+    
     
     
     sample_name <- tail(split[[1]], 1)
@@ -80,7 +84,7 @@ process_csv <- function(df) {
         t_test = map2(protected, unprotected, ~{t.test(.x$value, .y$value) %>% 
                  tidy()})
       ) %>%
-      select(!c("protected", "unprotected")) %>%
+      dplyr::select(!c("protected", "unprotected")) %>%
       unnest(cols = t_test)
     
   } else {
@@ -105,7 +109,7 @@ process_csv <- function(df) {
     
     disc <- df %>%
       filter(Change_Attribution != 2) %>% # remove harvested pixels
-      select(subzone, protected, vlce, Change_Attribution, change_year)
+      dplyr::select(subzone, protected, vlce, Change_Attribution, change_year)
     
     
     vlce <- disc %>%
@@ -180,7 +184,7 @@ elev_dist <- bind_rows(map(outs, 6))
 lat_dist <- bind_rows(map(outs, 7))
 
 #structure <- bind_rows(map(outs, 7))
-structure <- read_csv(here::here("data", "structure", "structure_means.csv"))
+structure <- read_csv(here::here("data", "structure_means.csv"))
 ```
 
 ```{r save}
@@ -485,26 +489,6 @@ bec %>%
   scale_y_continuous(labels = scales::percent) +
   theme(legend.position = c(0.8, 0.8))
 
-bec_zone_scatter <- vlce %>%
-  separate(subzone, into = c("zone", "subzone")) %>%
-  group_by(protected, zone) %>%
-  summarize(count = sum(n)) %>%
-  mutate(perc = count / sum(count)) %>%
-  dplyr::select(!count) %>%
-  pivot_wider(names_from = protected, values_from = perc) %>%
-  ggplot(aes(x = protected, y = unprotected, colour = zone)) +
-  geom_point() +
-  scale_y_continuous(labels = scales::percent, limits = c(0, .25)) +
-  scale_x_continuous(labels = scales::percent, limits = c(0, .25)) +
-  labs(colour = NULL,
-       x = "Protected",
-       y = "Unprotected") +
-  geom_abline(slope = 1, intercept = 0, lty = "dashed") +
-  scale_colour_igv()
-
-ggsave(here::here("outputs", "bec_zone_scatter.png"), 
-       plot = bec_zone_scatter, device = "png")
-
 # BEC subzone proportion of BC
 bec_subzone_scatter <- vlce %>%
   group_by(protected, subzone) %>%
@@ -579,7 +563,7 @@ bec_conch_df <- bec_prot_donut %>%
 
 write_csv(bec_conch_df, here::here("outputs", "bec_prop_protected.csv"))
 
-bec_conch_df %>%
+bec_conch <- bec_conch_df %>%
   ggplot(aes(x = fct_reorder(zone, perc), y = perc, fill = zone_nm)) +
   geom_bar(stat = "identity") +
   geom_hline(aes(yintercept = 0.17, colour = "2020 Biodiversity Target (Global)"), lty = "dotted", size = 1) +
@@ -601,6 +585,25 @@ bec_conch_df %>%
        colour = NULL)
 
 ggsave(here::here("outputs", "bec_conch.png"), plot = bec_conch, device = "png")
+
+bec_bar <- bec_conch_df %>%
+  ggplot(aes(x = fct_reorder(zone, perc), y = perc, fill = zone_nm)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0.17, colour = "#3B4992FF", lty = "dotted", size = 1) +
+  geom_hline(yintercept = 0.10, colour = "#EE0000FF", lty = "dotted", size = 1) +
+  geom_hline(yintercept = 0.154, colour = "#008B45FF", lty = "dotted", size = 1) +
+  geom_text(aes(x = 3.2, y = .105), label = "2010 Ecoregional Protection Target (10%)", colour = "black") +
+  geom_text(aes(x = 3, y = .175), label = "2020 Global Biodiversity Target (17%)") +
+  geom_text(aes(x = 3.2, y = .159), label = "BC Overall Proportion Protected (15.4%)") +
+  scale_colour_aaas() +
+  scale_fill_igv() +
+  labs(x = NULL,
+       y = "Percent Protected",
+       fill = NULL,
+       colour = NULL) +
+  scale_y_continuous(labels = scales::percent)
+
+ggsave(here::here("outputs", "bec_bar.png"), plot = bec_bar, device = "png")
 
 vlce %>%
   separate(subzone, into = c("zone", "subzone")) %>%
@@ -753,6 +756,7 @@ ggsave(here::here("outputs", "subzones_3d_scatter.png"),
 ```
 
 ```{r 3d-structure-zone}
+# weighted means to account for varying subzone size
 
 for_arrows_zone <- structure %>%
   separate(subzone, into = c("zone", "subzone")) %>%
@@ -832,6 +836,27 @@ structure_scatter <- structure %>%
 ggsave(here::here("outputs", "structure_scatter.png"),
        plot = structure_scatter, device = "png")
 ```
+
+```{r structure-violin}
+structure %>% 
+  dplyr::select(!c(starts_with("sd"), "count")) %>%
+  pivot_longer(starts_with("mean"), 
+               names_to = "variable", 
+               values_to = "value") %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  mutate(variable = str_remove(variable, "mean_")) %>%
+  left_join(keys$continuous) %>%
+  ggplot(aes(x = protected, y = value)) +
+  ggdist::stat_halfeye(
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    justification = -.2, 
+    point_colour = NA
+  ) +
+  facet_wrap(~var_long, scales = "free")
+```
+
 
 Latitude Disturbance
 
@@ -998,7 +1023,7 @@ subzone_csv <- read_csv(here::here("data", "all_vars", "sampled", paste0(name, "
 subzone_csv <- bind_rows(read_csv(here::here("data", "all_vars", "sampled", paste0(name, "-2015.csv"))),
           read_csv(here::here("data", "all_vars", "sampled", paste0(name2, "-2015.csv"))))
 subzone_formatted <- subzone_csv %>% 
-  select(subzone, protected, elev_cv:total_biomass) %>%
+  dplyr::select(subzone, protected, elev_cv:total_biomass) %>%
   pivot_longer(elev_cv:total_biomass) %>%
   left_join(keys$continuous, by = c("name" = "variable")) %>%
   left_join(t_tests, by = c("subzone", "name" = "variable")) %>%
@@ -1130,5 +1155,111 @@ cdf_conch <- cdf_all %>%
 
 ggsave(here::here("outputs", "cdf_conch.png"), plot = cdf_conch, device = "png")
 
+```
+
+```{r bec-table}
+bec <- read_sf(here::here("data", "shapefiles", "bec_subzones.shp"))
+
+bec_df <- bec %>% 
+  mutate(area = st_area(.)) %>%
+  st_drop_geometry()
+
+num_subzones <- bec_df %>%
+  group_by(zone, subzone) %>%
+  summarize(area = sum(area)) %>%
+  group_by(zone) %>%
+  summarize(n_subzones = n())
+
+bec_area <- bec_df %>%
+  group_by(zone) %>%
+  summarize(area = sum(area))
+
+bec_ppa <- read_sf(here::here("data", "shapefiles", "bc_ppa_bec_hres.shp"))
+
+bec_ppa_df <- bec_ppa %>%
+  mutate(area = st_area(.),
+         protected = ifelse(!is.na(IUCN_CA), T, F)) %>%
+  st_drop_geometry()
+
+bec_perc <- bec_ppa_df %>% 
+  group_by(zone, protected) %>% 
+  summarize(area = sum(area)) %>%
+  mutate(perc = area / sum(area)) %>%
+  filter(protected == T) %>%
+  drop_na() %>%
+  dplyr::select(zone, perc_protected = perc)
+
+bec_table <- keys$bec %>% 
+  left_join(num_subzones) %>%
+  left_join(bec_area) %>%
+  left_join(bec_perc) %>%
+  mutate(area = as.numeric(area / 10000),
+         perc_protected = paste0(round(as.numeric(perc_protected * 100), 1), "%"))
+
+write_csv(bec_table, here::here("outputs", "bec_table.csv"))
+```
+
+```{r prot-other}
+perc_prot <- vlce %>%
+  group_by(subzone, protected) %>%
+  summarize(count = sum(n)) %>%
+  mutate(perc = count / sum(count)) %>%
+  filter(protected == "protected") %>%
+  dplyr::select(!c(count, protected)) %>%
+  rename(perc_prot = perc)
+  
+perc_both <- vlce %>% 
+  left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
+  mutate(other = ifelse(forest == "Other", "Other", "Not-other")) %>%
+  group_by(subzone, other) %>%
+  summarize(count = sum(n)) %>% 
+  mutate(perc_other = count / sum(count)) %>%
+  filter(other == "Other") %>%
+  dplyr::select(subzone, perc_other) %>%
+  left_join(perc_prot) %>%
+  separate(subzone, into = c("zone", "subzone")) 
+
+
+
+perc_both <- perc_other %>%
+  dplyr::select(subzone, perc_other = protected) 
+
+summary(lm(perc_other ~ perc_prot, data = perc_both))$r.squared 
+
+perc_both %>%
+  ggplot(aes(x = perc_prot, y = perc_other, colour = zone)) +
+  geom_point() +
+  scale_colour_igv() +
+  geom_abline(intercept = 0, slope = 1, lty = "dashed") +
+  coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "Percent Protected",
+       y = "Percent Other",
+       colour = "Zone") +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent)
+
+perc_other %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  ggplot(aes(x = protected, y = unprotected, colour = zone)) +
+  geom_point() +
+  scale_colour_igv() +
+  labs(x = "Protected",
+       y = "Unprotected",
+       colour = "Zone")
+
+
+```
+
+```{r subzones-missing-counterparts}
+vlce %>% 
+  left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
+  mutate(other = ifelse(forest == "Other", "Other", "Not-other")) %>%
+  group_by(subzone, protected, other) %>%
+  summarize(count = sum(n)) %>%
+  mutate(perc = count / sum(count)) %>%
+  dplyr::select(!count) %>%
+  pivot_wider(names_from = protected, values_from = perc) %>%
+  filter(other == "Other") %>%
+  filter(is.nan(protected) | is.nan(unprotected))
 ```
 

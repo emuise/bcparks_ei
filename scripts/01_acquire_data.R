@@ -40,7 +40,7 @@ valid_categories <- c("Ia", "Ib", "II", "IV")
 
 ###currently does not filter for AGE!
 cpcad_filtered <- cpcad_bc %>%
-  mutate(Shape_Area = st_area(cpcad_bc)) %>%
+  mutate(Shape_Area = st_area(.)) %>%
   filter(IUCN_CAT %in% valid_categories &
            as.numeric(Shape_Area) > 1e6 &
            BIOME != "M") %>%
