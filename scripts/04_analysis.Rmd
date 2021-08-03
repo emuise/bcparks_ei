@@ -838,7 +838,7 @@ ggsave(here::here("outputs", "structure_scatter.png"),
 ```
 
 ```{r structure-violin}
-structure %>% 
+struct_cloud <- structure %>% 
   dplyr::select(!c(starts_with("sd"), "count")) %>%
   pivot_longer(starts_with("mean"), 
                names_to = "variable", 
@@ -846,17 +846,40 @@ structure %>%
   separate(subzone, into = c("zone", "subzone")) %>%
   mutate(variable = str_remove(variable, "mean_")) %>%
   left_join(keys$continuous) %>%
-  ggplot(aes(x = protected, y = value)) +
-  ggdist::stat_halfeye(
-    adjust = .5, 
-    width = .6, 
-    .width = 0, 
-    justification = -.2, 
-    point_colour = NA
-  ) +
-  facet_wrap(~var_long, scales = "free")
-```
+  dplyr::select(protected, value, var_long) %>%
+  ggplot(aes(x = fct_rev(protected), y = value)) +
+  ggdist::stat_halfeye(normalize = "panels",
+                       ## custom bandwidth
+                       adjust = .5, 
+                       ## adjust height
+                       width = .6, 
+                       ## move geom to the right
+                       justification = -.2, 
+                       ## remove slab interval
+                       .width = 0, 
+                       point_colour = NA, aes(fill = str_to_title(protected))) +
+  geom_boxplot(width = 0.15,
+               outlier.color = NA) +
+  geom_point(size = 1.3,
+             alpha = .1,
+             position = position_jitter(
+               seed = 1, width = 0.1
+             )) +
+  coord_flip() +
+  facet_wrap(~var_long, scales = "free") +
+  scale_fill_igv() +
+  labs(x = NULL,
+       y = NULL,
+       fill = NULL) +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "bottom")
 
+struct_cloud
+
+ggsave(here::here("outputs", "structure_raincloud.png"), plot = struct_cloud, device = "png")
+```
 
 Latitude Disturbance
 
@@ -1000,17 +1023,37 @@ prov_sf <- provinces %>%
 bbox <- bc_bounds %>%
   st_bbox()
 
+data("countriesHigh")
+
+#rworldxtra
+
+usa <- countriesHigh %>%
+  st_as_sf() %>%
+  st_transform(3005) %>%
+  filter(ADMIN == "United States of America")
+
+bec_zones_terr <- bec_zones_terr %>%
+  left_join(keys$bec)
+
 map <- ggplot() +
-  geom_sf(data = bec_zones_terr, aes(fill = zone), colour = NA) +
-  geom_sf(data = parks, aes(lty = "dotted"), fill = "Green", alpha = 0.75) +
-  geom_sf(data = prov_sf) %>%
+  geom_sf(data = bec_zones_terr, aes(fill = fct_reorder(zone_nm, zone)), colour = NA) +
+  geom_sf(data = parks, aes(linetype = "Protected Areas"), fill = "Green") +
+  #geom_sf(data = bc_bounds, fill = NA, size = 0.5) +
+  geom_sf(data = usa) +
+  geom_sf(data = prov_sf %>% filter(NAME_1 != "British Columbia"), fill = "grey50") +
   scale_linetype_manual(labels = "Protected Areas", values = "solid") +
   scale_fill_igv() +
   labs(fill = NULL,
        linetype = NULL) +
-  coord_sf()
+  coord_sf(xlim = c(bbox$xmin - 300000, bbox$xmax), 
+           ylim = c(bbox$ymin, bbox$ymax),
+           crs = 3005) +
+  theme(panel.background = element_rect(fill = "lightblue"),
+        legend.position = c(.15, .4),
+        legend.background = element_rect(fill = NA),
+        legend.box.background = element_rect(fill = "white"))
 
-ggsave(here::here("outputs", "bec_map.png"), plot = map, device = "png")
+ggsave(here::here("outputs", "bec_map.png"), plot = map, device = "png", height = 7, width = 10)
 ```
 
 zoomed vignette section

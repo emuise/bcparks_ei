@@ -34,6 +34,18 @@ cpcad_bc <- cpcad_sf %>%
 #categories used in Bolton et al. (2018)
 valid_categories <- c("Ia", "Ib", "II", "IV")
 
+# for size paragraph
+areas_ha <- cpcad_bc %>%
+  mutate(area = st_area(.),
+         ha = as.numeric(area) / 10000) %>%
+  st_drop_geometry() %>%
+  filter(IUCN_CAT %in% valid_categories &
+           BIOME != "M") %>%
+  dplyr::select(NAME_E, area, ha) %>%
+  arrange(desc(area))
+
+write_csv(areas_ha, here::here("outputs", "ppa_sizes.csv"))
+
 #size filter is based on 100ha
 #hence 1e6 square metres
 #also removes any biome marine parks

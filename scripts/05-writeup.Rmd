@@ -11,8 +11,6 @@ author:
     institute: bcp
   - name: Txomin Hermosilla
     institute: cfs
-  - name: Cole Burton
-    institute: frm
 institute:
   - frm: Department of Forest Resource Management, 2424 Main Mall, University of British Columbia, Vancouver, British Columbia, V6T 1Z4, Canada
   - bcp: BC Parks, Ministry of Environment and Climate Change Strategy, Victoria, British Columbia, Canada.
@@ -123,9 +121,7 @@ In this study, we (1) seek to enshrine in peer-reviewed literature the results f
 
 ## Study Area
 
-British Columbia is divided into 16 biogeoclimatic ecosystem classes based on climate, topography, and climax vegetation [@pojarBiogeoclimaticEcosystemClassification1987]. Approximately 64% of the total terrestrial area (94.4 million ha) of the province is forested [@bcministryofforestsBritishColumbiaForests2003]. The province's large area and variation in elevation leads to a wide variety of ecosystems, which are delineated into zones, subzones, variants, and phases in the province's biogeoclimatic ecosystem classification system [@pojarBiogeoclimaticEcosystemClassification1987]. These classifications delineate the ecosystems of BC by examining relationships between form (vegetation, site), climate, and time [@mackinnonUseBiogeoclimaticEcosystem1992]. Zones, the largest generalization, can be further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. BEC zones vary in size, as well as number of subzones (Table \@ref(tab:bec-table)).
-
-The province of British Columbia, Canada has an area of 94.4 million hectares - approximate 64% of which is forested [@bcministryofforestsBritishColumbiaForests2003], and is home to a wide variety of biomes and ecosystems, in part due to the its large size, as well as variations in topography and climate. The ecosystems of BC can be subdivided into zones that make up the province's Biogeoclimatic Ecosystem Classification (BEC) system. At it's broadest level, there are 16 zone classifications which are delineated based on broad climate, climax vegetation species, and soil [@pojarBiogeoclimaticEcosystemClassification1987]. These classifications delineate the ecosystems of BC by examining relationships between form (vegetation, site), climate, and time[@mackinnonUseBiogeoclimaticEcosystem1992]. Zones, the largest generalization, are further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. BEC zones vary in size, as well as number of subzones (Table \@ref(tab:bec-table)).
+The province of British Columbia, Canada has an area of 94.4 million hectares - approximate 64% of which is forested [@bcministryofforestsBritishColumbiaForests2003], and is home to a wide variety of biomes and ecosystems. This diversity of ecosystems are in part due to the its large size, as well as variations in topography and climate. The ecosystems of BC can be subdivided into zones that make up the province's Biogeoclimatic Ecosystem Classification (BEC) system. At it's broadest level, there are 16 zone classifications which are delineated based on macroclimate, climax vegetation species, and soil [@pojarBiogeoclimaticEcosystemClassification1987]. These classifications delineate the ecosystems of BC by examining relationships between form (vegetation, site), climate, and time [@mackinnonUseBiogeoclimaticEcosystem1992]. Zones, the largest generalization, are further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. BEC zones vary in size, as well as number of subzones (Table \@ref(tab:bec-table)).
 
 ```{r bec-table, message = F, echo = F}
 bec_table <- read_csv(here::here("outputs", "bec_table.csv"))
@@ -139,9 +135,24 @@ knitr::kable(bec_table,
              longtable = T)
 ```
 
+```{r ppa-areas, message = F, echo = F}
+
+areas_ha <- read_csv(here::here("outputs", "ppa_sizes.csv"))
+
+min_area <- areas_ha %>%
+  filter(ha == min(ha)) %>%
+  pull(ha) %>%
+  round(3)
+
+max_area <- areas_ha %>%
+  filter(ha == max(ha)) %>%
+  pull(ha) %>%
+  round(3)
+```
+
 ### Parks and Protected Areas
 
-The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variations in size (Figure \@ref(fig:study-area)). Both the British Columbian and Canada-wide protected areas mandates commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in Section \@ref(ecological-integrity) [@governmentofcanada2019; @bcparks2012]. Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbc2016].
+The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variations in size, ranging from `r min_area` to `r as.character(round(max_area, 0))` ha (Figure \@ref(fig:study-area)). Both the British Columbian [@bcparks2012] and Canada-wide protected areas mandates [@governmentofcanada2019] commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in the introduction. Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbc2016].
 
 ```{r study-area, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Map of terrestrial British Columbia including BEC zones and the location of PAs used in this study.")
@@ -158,9 +169,9 @@ Boundaries for BEC zones and subzones were acquired using the **bcmaps** R packa
 
 Boundaries for all parks and protected areas in British Columbia were obtained from the Canadian Protected and Conserved Areas Database (available from <https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip>). This database contains spatial coverage of all PAs in Canada as of December 2020, and includes the IUCN classification for each PA. Protected areas were selected to be suitable for analysis following similar criteria to @boltonUncoveringRegionalVariability2019. Only parks which belonged to IUCN classes Ia, Ib, II, and IV were selected, as these categories are considered strictly protected. Protected areas smaller than 100ha in size were also excluded from the analysis. After selection, there were 745 suitable parks managed under various jurisdictions (provincial, federal, NGOs), which take up 15.4% of the total terrestrial area of British Columbia [@environmentalreportingbc2016].
 
-### Elevation
+### Digital Elevation Model
 
-A digital elevation model for British Columbia was obtained
+The Advanced Spaceborne Thermal Emission and Reflection Radiometer (ASTER) digital elevation model (GDEM V2) was used to examine biases in protected area land cover and ecological classification by elevation. This DEM was created by using stereo-paired images from the ASTER instrument aboard the TERRA satellite, and is available globally at a 30m resolution [@tachikawa2011].
 
 ### Satellite Imagery
 
@@ -285,12 +296,12 @@ knitr::include_graphics(here::here("outputs", "latitude_disturbance_plot.png"))
 
 Figure \@ref(fig:lat-dist) shows the proportion of the landscape disturbed since 1984 by latitude and protected status, as well as the proportion of British Columbia which is protected by latitude. At all latitudes, fires disturb similar proportions of the landscape in both protected and unprotected areas. While there is some harvesting in PAs, it is much less common than in unprotected areas. At higher latitudes, harvesting becomes less prevalent.
 
-```{r structure-scatter, fig.cap = fig_cap, echo = FALSE}
+```{r structure-cloud, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Scatterplots of mean BEC subzone forest structure attributes in protected (x-axis), and unprotected (y-axis) areas of British Columbia. Dotted line indicates 1:1 line.")
-knitr::include_graphics(here::here("outputs", "structure_scatter.png"))
+knitr::include_graphics(here::here("outputs", "structure_raincloud.png"))
 ```
 
-Figure \@ref(fig:structure-scatter) shows scatterplots of aboveground biomass, canopy cover, canopy height, and canopy structure in protected and unprotected BEC subzones in British Columbia. All four variables show a strong positively linear trend. NEEDS UNIT AND R\^2 VALUES TO TALK MORE
+Figure \@ref(fig:structure-cloud) shows raincloud plots of various forest structural attributes. These plots show the distribution of BEC subzone means by protected areas status for of aboveground biomass, canopy cover, canopy height, and canopy structure in protected and unprotected BEC subzones in British Columbia. All four variables show a strong positively linear trend. NEEDS UNIT AND R\^2 VALUES TO TALK MORE
 
 ```{r structure-3d-scatter, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("3d vector diagram of BEC zones  forest structure attributes across British Columiba. Dots indicate the protected area means, and arrowheads indicate unprotected area means.")
