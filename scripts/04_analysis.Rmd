@@ -25,6 +25,13 @@ theme_set(theme_bw())
 set.seed(69420)
 
 source(here::here("scripts", "get_keys.R"))
+
+elev_agg <- 50
+vlce_colours <- keys$vlce %>% pull(ntems_colour) %>% rev()
+```
+
+```{r load}
+load(here::here("data", "backup.RData"))
 ```
 
 Merged DF methods
@@ -191,15 +198,6 @@ structure <- read_csv(here::here("data", "structure_means.csv"))
 save.image(file = here::here("data", "backup.RData"))
 ```
 
-```{r load}
-load(here::here("data", "backup.RData"))
-```
-
-```{r setup-2}
-elev_agg <- 50
-vlce_colours <- keys$vlce %>% pull(ntems_colour) %>% rev()
-```
-
 Elevation & Protected/Unprotected (BEC) Figures
 
 ```{r elev-bec}
@@ -276,7 +274,10 @@ mosaic_elev_plot <- plot_grid(elev_zone_plot_20m, prot_elev_plot_20m,
           rel_widths = c(3, 1),
           align = 'h', axis = 'tb')
 
-ggsave(here::here("outputs", "bec_elev.png"), plot = mosaic_elev_plot, device = "png")
+ggsave(here::here("outputs", "bec_elev.png"), plot = mosaic_elev_plot, 
+       device = "png",
+       height = 5.5,
+       width = 8.5)
 
 bec_legend <- cowplot::get_legend(elev_zone_plot_20m)
 
@@ -339,6 +340,17 @@ mosaic_lcc_plot <- plot_grid(elev_lcc_20m, prot_elev_plot_20m,
           align = 'h', axis = 'tb')
 
 ggsave(here::here("outputs", "lcc_elev.png"), plot = mosaic_lcc_plot, device = "png")
+
+protected_elev %>% 
+  mutate(elev = elev %/% elev_agg * elev_agg) %>% 
+  group_by(elev) %>%
+  summarize(protected = sum(protected),
+            unprotected = sum(unprotected)) %>%
+  mutate(total = protected + unprotected,
+         per_prot = protected / total,
+         per_unprot = 1 - per_prot) %>%
+  filter(unprotected == 0)
+
 ```
 
 Elevation and Disturbance
@@ -371,7 +383,6 @@ plot_grid(elev_dist_plot, prot_elev_plot_20m,
           rel_widths = c(3, 1),
           align = 'h', axis = 'tb')
 ```
-
 
 Donut Plots
 
@@ -566,11 +577,14 @@ write_csv(bec_conch_df, here::here("outputs", "bec_prop_protected.csv"))
 bec_conch <- bec_conch_df %>%
   ggplot(aes(x = fct_reorder(zone, perc), y = perc, fill = zone_nm)) +
   geom_bar(stat = "identity") +
-  geom_hline(aes(yintercept = 0.17, colour = "2020 Biodiversity Target (Global)"), lty = "dotted", size = 1) +
-  geom_hline(aes(yintercept = 0.10, colour = "2010 Biodiversity Target (Ecoregions)"), lty = "dotted", size = 1) +
-  geom_hline(aes(yintercept = 0.154, colour = "Total BC Proportion Protected (15.4%)"), lty = "dotted") +
-  geom_text(aes(x = 1, y = .12), label = "10%", colour = "black") +
-  geom_text(aes(x = 1, y = .19), label = "17%") +
+  geom_hline(aes(yintercept = 0.17, colour = "2020 Protection Target (Global)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.25, colour = "2025 Protection Target (Canada)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.154, colour = "2020 BC Proportion Protected"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.3), lty = "dotted", size = 1) +
+  geom_text(aes(x = 1, y = 0.135), label = "15.4%") +
+  geom_text(aes(x = 1, y = 0.19), label = "17%") +
+  geom_text(aes(x = 1, y = 0.27), label = "25%", colour = "black") +
+  geom_text(aes(x = 1, y = 0.32, label = "30%")) +
   scale_colour_aaas() +
   scale_fill_igv() +
   coord_polar() +
@@ -584,7 +598,8 @@ bec_conch <- bec_conch_df %>%
   labs(fill = NULL,
        colour = NULL)
 
-ggsave(here::here("outputs", "bec_conch.png"), plot = bec_conch, device = "png")
+ggsave(here::here("outputs", "bec_conch.png"), plot = bec_conch, device = "png",
+       height = 5.5, width = 8.5)
 
 bec_bar <- bec_conch_df %>%
   ggplot(aes(x = fct_reorder(zone, perc), y = perc, fill = zone_nm)) +
@@ -634,13 +649,16 @@ vlce_conch_df <- vlce %>%
   ungroup()
 
 vlce_conch <- vlce_conch_df %>%
-  ggplot(aes(x = fct_reorder(as.factor(vlce), perc), y = perc, fill = fct_rev(fct_reorder(name_clean, vlce, .fun = max)))) +
+  ggplot(aes(x = fct_reorder(as.factor(vlce), perc), y = perc, fill = fct_reorder(name_clean, vlce, .fun = max))) +
   geom_bar(stat = "identity") +
-  geom_hline(aes(yintercept = 0.17, colour = "2020 Biodiversity Target (Global)"), lty = "dotted", size = 1) +
-  geom_hline(aes(yintercept = 0.10, colour = "2010 Biodiversity Target (Ecoregions)"), lty = "dotted", size = 1) +
-  geom_hline(aes(yintercept = 0.154, colour = "Total BC Proportion Protected (15.4%)"), lty = "dotted") +
-  geom_text(aes(x = 1, y = .12), label = "10%", colour = "black") +
-  geom_text(aes(x = 1, y = .19), label = "17%") +
+  geom_hline(aes(yintercept = 0.17, colour = "2020 Protection Target (Global)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.25, colour = "2025 Protection Target (Canada)"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.154, colour = "2020 BC Proportion Protected"), lty = "dotted", size = 1) +
+  geom_hline(aes(yintercept = 0.33), lty = "dotted", size = 1) +
+  geom_text(aes(x = 1, y = 0.135), label = "15.4%") +
+  geom_text(aes(x = 1, y = 0.19), label = "17%") +
+  geom_text(aes(x = 1, y = 0.27), label = "25%", colour = "black") +
+  geom_text(aes(x = 1, y = 0.35, label = "33%")) +
   scale_colour_aaas() +
   scale_fill_manual(values = rev(vlce_colours)) +
   coord_polar() +
@@ -655,8 +673,11 @@ vlce_conch <- vlce_conch_df %>%
        colour = NULL) +
   guides(fill = guide_legend(order = 2),
          colour = guide_legend(order = 1))
+
+vlce_conch
   
-ggsave(here::here("outputs", "vlce_conch.png"), plot = vlce_conch, device = "png")
+ggsave(here::here("outputs", "vlce_conch.png"), plot = vlce_conch, device = "png",
+       height = 5.5, width = 8.5)
 ```
 
 
@@ -664,7 +685,11 @@ ggsave(here::here("outputs", "vlce_conch.png"), plot = vlce_conch, device = "png
 T-Test Plots
 
 ```{r t-tests}
-t_tests_zonal <- t_tests %>%
+t_tests_b <- t_tests %>%
+  filter(!variable %in% c("elev", "slope")) %>%
+  mutate(p.value = p.value * 496) ## bonferroni correction
+
+t_tests_zonal <- t_tests_b %>%
   separate(subzone, into = c("zone", "subzone")) %>% 
   mutate(sig0.05 = ifelse(p.value < 0.05, T, F),
          sig0.01 = ifelse(p.value < 0.01, T, F)) %>%
@@ -676,21 +701,104 @@ t_tests_zonal <- t_tests %>%
          per_sig0.01 = sig0.01 / total) %>%
   left_join(keys$continuous)
 
+t_tests_b %>%
+  separate(subzone, into = c("zone", "subzone")) %>% 
+  mutate(sig0.05 = ifelse(p.value < 0.05, T, F),
+         sig0.01 = ifelse(p.value < 0.01, T, F)) %>%
+  group_by(variable) %>%
+  summarize(sig0.05 = sum(sig0.05),
+            sig0.01 = sum(sig0.01),
+            total = n()) %>%
+  mutate(per_sig0.05 = sig0.05 / total,
+         per_sig0.01 = sig0.01 / total)
+
 t_tests_scatter <- t_tests_zonal %>%
   filter(!variable %in% c("slope", "elev")) %>%
   mutate(axis_label = paste0(var_long, " (", unit, ")")) %>%
   ggplot(aes(x = per_sig0.01, y = axis_label)) +
-  geom_point(aes(colour = zone), alpha = 0.5) +
-  geom_text_repel(aes(label = zone), max.overlaps = 20) +
-  labs(x = "Percent Significance",
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(aes(colour = zone), size = 2, width = 0) +
+  #geom_text_repel(aes(label = zone), max.overlaps = 20) +
+  labs(x = "Percent of Significant (P < 0.01) Tests",
        y = NULL) +
   scale_colour_igv() +
   labs(colour = NULL) +
-  scale_x_continuous(labels = scales::percent)
+  scale_x_continuous(labels = scales::percent, limits = c(0.5, 1)) 
 
-ggsave(here::here("outputs", "t_tests_scatter.png"), plot = t_tests_scatter, device = "png")
+t_tests_scatter
+
+ggsave(here::here("outputs", "t_tests_scatter.png"), plot = t_tests_scatter, device = "png",
+       height = 5.5, width = 8.5)
   
 ```
+
+```{r t-test-2}
+t_tests_2 <- t_tests %>%
+  separate(subzone, into = c("zone", "subzone")) %>% 
+  filter(!variable %in% c("elev", "slope")) %>%
+  mutate(#p.value = p.value + 0.0001,
+         significant = case_when(p.value < 0.0001 / 496 ~ "< 0.001",
+                                 p.value < 0.001 / 496 ~ "0.001",
+                                 p.value < 0.01 / 496 ~ "0.01",
+                                 p.value < 0.05 / 496 ~ "0.05",
+                                 p.value < 0.10 / 496 ~ "0.10",
+                                 TRUE ~ "Not Signficant")) %>%
+  left_join(keys$continuous)
+
+t_tests_2 %>%
+  ggplot(aes(x = var_long, y = p.value, colour = significant)) +
+  #geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(alpha = 0.3) +
+  #geom_hline()
+  #scale_y_continuous(trans = "log10") +
+  labs(x = NULL,
+       y = "P-value",
+       colour = "Significance") +
+  scale_colour_igv() +
+  scale_fill_igv() +
+  facet_wrap(~zone, scales = "free") +
+  geom_hline(aes(yintercept = 0.01 / 496, colour = "0.01"), lty = "dashed") +
+  geom_hline(aes(yintercept = 0.05 / 496, colour = "0.05"), lty = "dashed")
+
+t_tests_2 %>%
+  ggplot(aes(x = zone, y = p.value)) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(aes(colour = significant), alpha = 0.5) +
+  #geom_hline()
+  #scale_y_continuous(trans = "log10") +
+  labs(x = NULL,
+       y = "P-value",
+       colour = "Significance") +
+  scale_colour_igv() +
+  scale_fill_igv() +
+  facet_wrap(~var_long, scales = "free") +
+  geom_hline(aes(yintercept = 0.01 / 496, colour = "0.01"), lty = "dashed") +
+  geom_hline(aes(yintercept = 0.05 / 496, colour = "0.05"), lty = "dashed") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
+
+t_tests_2 %>%
+  ggplot(aes(x = var_long, y = p.value)) + 
+  geom_jitter(aes(colour = significant)) +
+  scale_y_continuous(limits = c(0, 0.05))
+
+t_tests_2 %>%
+  group_by(variable, significant) %>%
+  summarize(count = n()) %>%
+  mutate(perc = count / sum(count)) %>%
+  left_join(keys$continuous) %>%
+  ggplot(aes(x = var_long, y = perc, fill = significant)) +
+  geom_col() +
+  scale_fill_scico_d(palette = "batlow") +
+  labs(x = NULL, 
+       y = "Proportion Significant",
+       fill = "Significance Threshold") +
+  scale_y_continuous(labels = scales::percent)
+
+t_tests_2 %>%
+  ggplot(aes(x = var_long, y = p.value)) +
+  geom_boxplot(outlier.alpha = 0)
+```
+
 
 Structure 3D Plot
 
@@ -846,13 +954,14 @@ struct_cloud <- structure %>%
   separate(subzone, into = c("zone", "subzone")) %>%
   mutate(variable = str_remove(variable, "mean_")) %>%
   left_join(keys$continuous) %>%
-  dplyr::select(protected, value, var_long) %>%
+  dplyr::select(protected, value, var_long, zone) %>%
   ggplot(aes(x = fct_rev(protected), y = value)) +
   ggdist::stat_halfeye(normalize = "panels",
                        ## custom bandwidth
                        adjust = .5, 
                        ## adjust height
                        width = .6, 
+                       #alpha = 0.75,
                        ## move geom to the right
                        justification = -.2, 
                        ## remove slab interval
@@ -861,7 +970,7 @@ struct_cloud <- structure %>%
   geom_boxplot(width = 0.15,
                outlier.color = NA) +
   geom_point(size = 1.3,
-             alpha = .1,
+             alpha = .3,
              position = position_jitter(
                seed = 1, width = 0.1
              )) +
@@ -870,7 +979,8 @@ struct_cloud <- structure %>%
   scale_fill_igv() +
   labs(x = NULL,
        y = NULL,
-       fill = NULL) +
+       fill = NULL,
+       colour = NULL) +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
@@ -910,7 +1020,7 @@ lat_plot <- lat_df %>%
   ggplot(aes(x = latitude, y = perc, fill = Change_Attribution)) +
   geom_area() +
   facet_wrap(~str_to_title(protected)) +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
   coord_flip(ylim = c(.75, 1)) +
   labs(x = "Latitude",
        y = "Percent Disturbed",
@@ -943,7 +1053,9 @@ latitude_disturbance_plot <- plot_grid(lat_plot, lat_prot,
           align = 'h', axis = 'tb')
 
 ggsave(here::here("outputs", "latitude_disturbance_plot.png"),
-       plot = latitude_disturbance_plot, device = "png")
+       plot = latitude_disturbance_plot, device = "png",
+       height = 5.5,
+       width = 8.5)
 ```
 
 

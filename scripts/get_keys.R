@@ -11,7 +11,8 @@ key_locs <- list.files(keys_here,
 key_names <- map(list.files(keys_here), clean_name)
 
 keys <- map(key_locs,
-            read_csv)
+            read_csv,
+            col_types = cols())
 
 names(keys) <- key_names
 
