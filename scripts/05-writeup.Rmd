@@ -322,9 +322,11 @@ While it is simple to calculate proportion of the landscape protected, it is mor
 
 Forest structural attributes were significantly different (P \< 0.01) in the majority of subzones (85%).
 
-Possible future research could involve looking
+Our analysis showed that the majority of structural attributes were significantly different in most ecosystem subzones (Figure \@ref(fig:t-test-plot)).
 
-One notable ecosystem in BC is the Coastal Douglas-fir zone. It is composed of a single subzone, moist maritime, and is the smallest BEC zone in British Columbia (Table \@ref(tab:bec-table)). It is also the least protected by area, with only 4.8% of it's terrestrial area protected. Beyond this, it has one of the largest forest structural differences,
+Possible future research could involve looking at near ecosystems to protected areas, utilizing the greater park ecosystem concept from @boltonUncoveringRegionalVariability2019. Utilizing multiple distances within this concept would allow researchers to determine if and how far from PAs the forest structure is different in surrounding unprotected areas.
+
+One notable ecosystem in BC is the Coastal Douglas-fir zone. It is composed of a single subzone, moist maritime, and is the smallest BEC zone in British Columbia (Table \@ref(tab:bec-table)). It is also the least protected by area, with only 4.8% of it's terrestrial area protected. Beyond this, it has one of the largest forest structural differences, with protected forests being taller,
 
 Monitoring the effectiveness of PAs is a difficult but important task. It is beyond time to move past simple ecosystem proportion metrics for assessing the effectiveness of protected areas. The advent of free
 

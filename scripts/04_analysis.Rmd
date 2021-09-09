@@ -822,19 +822,38 @@ library(gridGraphics) # probably in use
 bec_cols <- pal_igv("default")(16)
 structure <- read_csv(here::here("data", "structure_means.csv"))
 
-for_arrows_subzone <- structure %>%
+for_arrows_subzone_full <- structure %>%
   dplyr::select(!ends_with("total_biomass")) %>%
   dplyr::select(protected, subzone, starts_with("mean")) %>%
   pivot_wider(names_from = protected, values_from = starts_with("mean")) %>%
-  separate(subzone, into = c("zone", "subzone")) %>%
+  #%>%
   drop_na() #%>%
   #filter(zone != "SBPS") %>%
-  
-for_arrows_subzone <- for_arrows_subzone %>%
+
+for_arrows_subzone <- structure %>% 
+  dplyr::select(!ends_with("total_biomass")) %>%
+  dplyr::select(!starts_with("sd") & !count) %>%
+  mutate(across(starts_with("mean"), scale)) %>%
+  pivot_wider(names_from = protected, values_from = starts_with("mean")) %>%
+  mutate(elev_cv_dif = mean_elev_cv_protected - mean_elev_cv_unprotected,
+         loreys_height_dif = mean_loreys_height_protected - mean_loreys_height_unprotected,
+         percentage_first_returns_above_2m_dif = mean_percentage_first_returns_above_2m_protected - mean_percentage_first_returns_above_2m_unprotected) %>%
+  dplyr::select(subzone, ends_with("dif")) %>%
+  mutate(vector_length = sqrt((elev_cv_dif)^2 + (loreys_height_dif)^2 + (percentage_first_returns_above_2m_dif)^2)) %>%
+  filter(vector_length > 1) %>%
+  left_join(for_arrows_subzone_full) %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
   mutate(id = group_indices(., zone))
 
-# currently broken colouring of points
+arrows_zones <- for_arrows_subzone %>%
+  pull(zone) %>% 
+  unique()
+  
+subzone_cols <- bec_cols[(keys$bec %>% pull(zone)) %in% arrows_zones]
+
+
 subzones_3d <- function() {
+  #plotrgl()
   arrows3D(for_arrows_subzone$mean_elev_cv_protected, 
            for_arrows_subzone$mean_loreys_height_protected, 
            for_arrows_subzone$mean_percentage_first_returns_above_2m_protected,
@@ -842,7 +861,7 @@ subzones_3d <- function() {
            for_arrows_subzone$mean_loreys_height_unprotected, 
            for_arrows_subzone$mean_percentage_first_returns_above_2m_unprotected,
            colvar = for_arrows_subzone$id,
-           col = bec_cols,
+           #col = subzone_cols,
            colkey = FALSE,
            lwd = 1, 
            d = 3, 
@@ -851,14 +870,19 @@ subzones_3d <- function() {
            xlab = "\n Elevation Covariance",
            ylab = "\n Forest Height (m)",
            zlab = "\n Canopy Cover (%)",
-           type = "cone")
+           type = "cone"
+           #xlim = c(-3, 3),
+           #ylim = c(-3, 3),
+           #zlim = c(-3, 3)
+           )
   
   points3D(for_arrows_subzone$mean_elev_cv_protected, 
            for_arrows_subzone$mean_loreys_height_protected, 
            for_arrows_subzone$mean_percentage_first_returns_above_2m_protected,
            labels = for_arrows_subzone$zone,
            colvar = for_arrows_subzone$id,
-           col = bec_cols, add = T,
+           #col = subzone_cols,
+           add = T,
            colkey = F,
            type = "p",
            pch = 19,
