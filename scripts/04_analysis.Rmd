@@ -11,8 +11,10 @@ Setup!
 library(tidyverse) # in use
 library(tidymodels) # t tests
 library(cowplot) # plot additions
+library(patchwork) # plot additions
 library(ggrepel) # for t-test plot
 library(ggridges) # for ridge plot
+library(magick) # for image cropping of 3d vectors
 #library(ggpubr)
 
 library(sf) # in use
@@ -598,6 +600,7 @@ bec_conch <- bec_conch_df %>%
   labs(fill = NULL,
        colour = NULL)
 
+
 ggsave(here::here("outputs", "bec_conch.png"), plot = bec_conch, device = "png",
        height = 5.5, width = 8.5)
 
@@ -634,6 +637,15 @@ vlce %>%
   labs(x = "Percent Protected",
        y = NULL,
        fill = NULL)
+
+for_legend <- bec_conch_df %>% 
+  ggplot(aes(x = zone, y = count, fill = zone_nm)) +
+  geom_col() +
+  scale_fill_igv() +
+  labs(fill = NULL)
+
+
+bec_legend <- cowplot::get_legend(for_legend + theme(legend.box.margin = margin(0, 0, 0, -500)))
 ```
 
 VLCE Conch
@@ -808,7 +820,7 @@ library(plot3Drgl) # not in use
 library(gridGraphics) # probably in use
 
 bec_cols <- pal_igv("default")(16)
-structure <- read_csv(here::here("data", "structure", "structure_means.csv"))
+structure <- read_csv(here::here("data", "structure_means.csv"))
 
 for_arrows_subzone <- structure %>%
   dplyr::select(!ends_with("total_biomass")) %>%
@@ -829,14 +841,16 @@ subzones_3d <- function() {
            for_arrows_subzone$mean_elev_cv_unprotected, 
            for_arrows_subzone$mean_loreys_height_unprotected, 
            for_arrows_subzone$mean_percentage_first_returns_above_2m_unprotected,
+           colvar = for_arrows_subzone$id,
            col = bec_cols,
+           colkey = FALSE,
            lwd = 1, 
-           #d = 3, 
-           bty = "g",
+           d = 3, 
+           #bty = "g",
            ticktype = "detailed",
-           xlab = "\n Vertical Complexity",
-           ylab = "\n Forest Height",
-           zlab = "\n Canopy Cover",
+           xlab = "\n Elevation Covariance",
+           ylab = "\n Forest Height (m)",
+           zlab = "\n Canopy Cover (%)",
            type = "cone")
   
   points3D(for_arrows_subzone$mean_elev_cv_protected, 
@@ -856,14 +870,22 @@ subzones_3d <- function() {
 
 
 subzones_3d_scatter <- plot_grid(subzones_3d, bec_legend,
-          scale = c(1.2, 1))
+          scale = c(1, 1))
+
+subzones_3d_scatter
 
 ggsave(here::here("outputs", "subzones_3d_scatter.png"),
        plot = subzones_3d_scatter, device = "png")
 
+zones_img <- image_read(here::here("outputs", "subzones_3d_scatter.png")) 
+
+zones_img %>% image_trim() %>% image_write(here::here("outputs", "subzones_3d_scatter.png"), format = "png")
+
 ```
 
 ```{r 3d-structure-zone}
+
+
 # weighted means to account for varying subzone size
 
 for_arrows_zone <- structure %>%
@@ -891,9 +913,9 @@ zones_3d <- function() {
            d = 3, 
            #bty = "g",
            ticktype = "detailed",
-           xlab = "\n Vertical Complexity",
-           ylab = "\n Forest Height",
-           zlab = "\n Canopy Cover",
+           xlab = "\n Elevation Covariance",
+           ylab = "\n Forest Height (m)",
+           zlab = "\n Canopy Cover (%)",
            type = "cone")
   
   points3D(for_arrows_zone$mean_elev_cv_protected, 
@@ -912,11 +934,18 @@ zones_3d <- function() {
            )
 }
 
-zones_3d_scatter <- plot_grid(zones_3d, bec_legend,
-          scale = c(1.2, 1))
+bec_legend <- cowplot::get_legend(for_legend + theme(legend.box.margin = margin(0, 0, 0, -150)))
+
+zones_3d_scatter <- plot_grid(zones_3d) + bec_legend #& plot_annotation(theme = theme(plot.margin = margin(0, 5, 0, 5, "cm")))
 
 ggsave(here::here("outputs", "zones_3d_scatter.png"),
        plot = zones_3d_scatter, device = "png")
+
+# cropping because i couldn't figure it out in GGPLOT lol
+
+zones_img <- image_read(here::here("outputs", "zones_3d_scatter.png")) 
+
+zones_img %>% image_trim() %>% image_write(here::here("outputs", "zones_3d_scatter.png"), format = "png")
 
 ```
 
@@ -1416,5 +1445,20 @@ vlce %>%
   pivot_wider(names_from = protected, values_from = perc) %>%
   filter(other == "Other") %>%
   filter(is.nan(protected) | is.nan(unprotected))
+```
+
+```{r}
+structure %>%
+  dplyr::select(!starts_with("sd")) %>%
+  pivot_longer(starts_with("mean")) %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  ggplot(aes(x = str_to_title(protected), y = value)) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(aes(colour = zone), alpha = 0.5) +
+  facet_wrap(~name, scales = "free") +
+  scale_colour_igv() +
+  labs(colour = "Zone",
+       x = NULL,
+       y = NULL)
 ```
 

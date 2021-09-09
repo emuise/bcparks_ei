@@ -15,7 +15,7 @@ institute:
   - frm: Department of Forest Resource Management, 2424 Main Mall, University of British Columbia, Vancouver, British Columbia, V6T 1Z4, Canada
   - cfs: Canadian Forest Service (Pacific Forestry Centre), Natural Resources Canada, 506 West Burnside Road, Victoria, BC V8Z 1M5, Canada
   - bcp: BC Parks, Ministry of Environment and Climate Change Strategy, Victoria, British Columbia, Canada.
-abstract: "**Abstract:** We took some data, and made it into some other data. Then we compared it between forests in protected and unportected areas. \\par \\textbf{Keywords:}**Keywords:** Protected Areas, Remote Sensing, Forest Structure, Disturbances, Land Cover, Ecological Classifications"
+abstract: "**Abstract:** Protected areas conservation is an effective means of conserving biodiversity and valuable ecosystem services. Currently, many nations and international governments use proportional area protected as a critical metric for assessing progress towards biodiversity conservation. However, these metrics do not assess the effectiveness of protected area networks, nor do they assess how representative PAs are at protecting the ecosystems they aim to protect. Within forest environments, forest structure can be a key indicator of biodiversity. To face these challenges, we examined the protected area network of British Columbia using satellite remote sensing data within British Columbia's biogeoclimatic ecosystem classification (BEC) system. First, we examined BEC ecosystem and land cover class bias in protected areas by elevation, and harvesting and fire disturbance regimes by latitude. We then examined forest structural attributes in ecosystem subzones, comparing them using the student's t-test by taking an equal sample of unharvested pixels in each subzone in protected and unprotected areas. We found that forest structural attributes are most often significantly different in protected and unprotected areas (426/496 significant at P < 0.01). We then examined a vector diagram of three structural attributes to determine the subzones with the most different structures in protected and unprotected areas. The results from this analysis will allow parks management to consider forest structure when examining new locations for protected areas in British Columbia, within the provincial ecosystem classification context. \\par \\textbf{Keywords:}**Keywords:** Protected Areas, Remote Sensing, Forest Structure, Disturbances, Land Cover, Ecological Classifications"
 output:
   bookdown::word_document2:
     reference_docx: my-styles.docx
@@ -94,7 +94,7 @@ In recent years, many studies monitoring ecological integrity or related indicat
 
 As Canada progresses towards the national goal of 25% of terrestrial area protected by 2025, there is a growing need to better understand how PAs compare to unprotected areas with respect to location, ecological classifications, elevations, productivity, and structure. This adds increasing importance for considering protected area conservation goals beyond just proportional coverage. Also relevant to consider, are the biases in PA placement, which have frequently been located in cheaper, low productivity regions both globally [@venter2014; @joppa2009; @venter2018] and regionally, as is the case in British Columbia, Canada [@environmentalreportingbc2016; @wang2020; @hamann2005]. By comparing protected and unprotected areas in the province, differences can be shown across varying gradients, including latitude, elevation, and ecological classification.
 
-In this study, we (1) seek to enshrine in peer-reviewed literature the results found of @environmentalreportingbc2016, in that PAs in British Columbia are biased towards high-elevation, low-productivity regions of the province, and (2) identify gaps in forest structures in PAs in the province. To accomplish this, we examined the bias in PA placement by comparing ecoregional PA coverage and land cover classes by elevation, and disturbances by latitude across protected and unprotected areas in British Columbia. Following this, we calculated the zonal mean of forest structural attributes for each BEC zone in the province in order to determine the differences between PAs and unprotected areas. The results will allow parks management to better consider forest structure when planning PA acquisitions.
+In this study, we (1) seek to enshrine in peer-reviewed literature the results found of @environmentalreportingbc2016, in that PAs in British Columbia are biased towards high-elevation, low-productivity regions of the province, and (2) identify gaps in forest structures in PAs in the province. The identified gaps will highlight which additional forest structures are required to be captured within protected areas to ensure equal representation of the various ecozones. To accomplish this, we examined the bias in PA placement by comparing ecoregional PA coverage and land cover classes by elevation, and disturbances by latitude across protected and unprotected areas in British Columbia, Canada. Following this, we calculate representative forest structural attributes for each BEC zone in order to determine the differences between PAs and unprotected areas and then use this information to determine the most and least similar forest structures. Results will allow parks management to better consider forest structure when planning PA acquisitions.
 
 ## Dot Points
 
@@ -122,7 +122,7 @@ In this study, we (1) seek to enshrine in peer-reviewed literature the results f
 
 ## Study Area
 
-The province of British Columbia, Canada has an area of 94.4 million hectares - approximate 64% of which is forested [@bcministryofforestsBritishColumbiaForests2003], and is home to a wide variety of biomes and ecosystems. This diversity of ecosystems are in part due to the its large size, as well as variations in topography and climate. The ecosystems of BC can be subdivided into zones that make up the province's Biogeoclimatic Ecosystem Classification (BEC) system. At it's broadest level, there are 16 zone classifications which are delineated based on macroclimate, climax vegetation species, and soil [@pojarBiogeoclimaticEcosystemClassification1987]. These classifications delineate the ecosystems of BC by examining relationships between form (vegetation, site), climate, and time [@mackinnonUseBiogeoclimaticEcosystem1992]. Zones, the largest generalization, are further broken down into subzones, variants, and phases based on local microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. BEC zones vary in size, as well as number of subzones (Table \@ref(tab:bec-table)).
+British Columbia, Canada is 94.4 million hectares, of which approximately 64% is forested [@bcministryofforestsBritishColumbiaForests2003], and encapsulates a wide variety of biomes and ecosystems. This diversity of ecosystems are in part due to the its large size as well as variations in topography and climate. The existing Biogeoclimatic Ecosystem Classification (BEC) system disaggregates the ecosystems of BC into zones.. At the broadest level, 16 zone classifications are delineated based on macroclimate, climax vegetation species, and soil [@pojarBiogeoclimaticEcosystemClassification1987]. Zones are further broken down into subzones, variants, and phases based on microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. As a result BEC zones vary widely in size, as well as number of subzones (Table \@ref(tab:bec-table)).
 
 ```{r bec-table, message = F, echo = F}
 bec_table <- read_csv(here::here("outputs", "bec_table.csv"))
@@ -143,7 +143,7 @@ areas_ha <- read_csv(here::here("outputs", "ppa_sizes.csv"))
 min_area <- areas_ha %>%
   filter(ha == min(ha)) %>%
   pull(ha) %>%
-  round(3)
+  round(2)
 
 max_area <- areas_ha %>%
   filter(ha == max(ha)) %>%
@@ -151,7 +151,7 @@ max_area <- areas_ha %>%
   round(3)
 ```
 
-The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variations in size, ranging from `r min_area` to `r as.character(round(max_area, 0))` ha (Figure \@ref(fig:study-area)). Both the British Columbian [@bcparks2012] and Canada-wide protected areas mandates [@governmentofcanada2019] commit to conserving ecological integrity across the PA network, using the Canadian definition outlined in the introduction. Protected areas in the British Columbian network are frequently placed in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbc2016].
+The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variations in size, ranging from `r min_area` to `r scales::comma_format()(max_area)` ha (Figure \@ref(fig:study-area)). Both the British Columbian [@bcparks2012] and Canada-wide protected areas mandates [@governmentofcanada2019] commit to conserving ecological integrity across the PA network. Protected areas in the BC network are frequently located in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbc2016; @wang2020].
 
 ```{r study-area, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Map of terrestrial British Columbia including BEC zones and the location of PAs used in this study.")
@@ -162,15 +162,15 @@ knitr::include_graphics(here::here("outputs", "bec_map.png"))
 
 ### Biogeoclimatic Ecosystem Classification
 
-Boundaries for BEC zones and subzones were acquired using the **bcmaps** R package [@R-bcmaps]. Two BEC subzones were entirely subsumed by PAs (Boreal White and Black Spruce - Very Wet Cool and Spruce -- Willow -- Birch - Very Wet Cool Shrub), whereas the Sub-Boreal Pine -- Spruce - Moist Cool subzone has no PAs associated with it. Due to this, these subzones were excluded from hypothesis testing, but were included in zonal aggregations. In this paper, zones are used to examine categorical data (land cover and disturbance), while forest structure is compared at the subzone level between PAs and their unprotected counterparts in British Columbia.
+Boundaries for BEC zones and subzones were acquired using the **bcmaps** R package [@R-bcmaps]. Two BEC subzones were entirely subsumed by PAs (Boreal White and Black Spruce - Very Wet Cool and Spruce -- Willow -- Birch - Very Wet Cool Shrub), whereas the Sub-Boreal Pine -- Spruce - Moist Cool subzone has no PAs associated with it.
 
 ### Protected Areas
 
-Boundaries for all parks and protected areas in British Columbia were obtained from the Canadian Protected and Conserved Areas Database (available from <https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip>). This database contains spatial coverage of all PAs in Canada as of December 2020, and includes the IUCN classification for each PA. Protected areas were selected to be suitable for analysis following similar criteria to @boltonUncoveringRegionalVariability2019. Only parks which belonged to IUCN classes Ia, Ib, II, and IV were selected, as these categories are considered strictly protected. Protected areas smaller than 100ha in size were also excluded from the analysis. After selection, there were 745 suitable parks managed under various jurisdictions (provincial, federal, NGOs), which take up 15.4% of the total terrestrial area of British Columbia [@environmentalreportingbc2016].
+Boundaries for all parks and protected areas in BC were obtained from the Canadian Protected and Conserved Areas Database (available from <https://cws-scf.ca/CPCAD-BDCAPC_Dec2020.gdb.zip>) which contains spatial coverage of all PAs in Canada as of December 2020, and includes the IUCN classification for each PA. Protected areas were selected to be suitable for analysis following the criteria outlined in @boltonUncoveringRegionalVariability2019. Only parks which belonged to IUCN classes Ia, Ib, II, and IV were selected, as these categories are considered strictly protected. Protected areas smaller than 100ha in size were also excluded from the analysis. After selection, 745 suitable parks managed under various jurisdictions (provincial, federal, NGOs) which comprise 15.4% of the total terrestrial area of British Columbia were studied [@environmentalreportingbc2016].
 
 ### Digital Elevation Model
 
-The Advanced Spaceborne Thermal Emission and Reflection Radiometer (ASTER) digital elevation model (GDEM V2) was used to examine biases in protected area land cover and ecological classification by elevation. This DEM was created by using stereo-paired images from the ASTER instrument aboard the TERRA satellite, and is available globally at a 30m resolution [@tachikawa2011].
+The Advanced Spaceborne Thermal Emission and Reflection Radiometer (ASTER) digital elevation model (GDEM V2, 30m) was used to examine biases in protected area land cover and ecological classification by elevation [@tachikawa2011].
 
 ### Satellite Imagery
 
@@ -178,7 +178,7 @@ The opening of the Landsat archive in 2008 [@wulderOpeningArchiveHow2012] has pl
 
 With multiple images available for a given region for all portions of the year, a recent development in satellite remote sensing has been to create best-available-pixel (BAP) composites. These composites include the best single observation at each pixel for the catalog of available scenes, within certain temporal bounds such as seasons [@whitePixelBasedImageCompositing2014]. This allows for the examination of trends on a yearly basis with high quality data, removing most missing data such as clouds, shadows, and sensor errors [@whitePixelBasedImageCompositing2014]. This method does however have drawbacks: the revisit time of many sensors (e.g. Landsat's 16 day revisit time) makes it difficult to compare a region intra-annually.
 
-While Landsat provides an excellent dataset for picturing the environment in 2D (e.g. land cover, disturbances), airborne laser scanning allow for very detailed and accurate depictions of the 3D forest structure [@wulderLidarSamplingLargearea2012]. One common problem associated with these airborne laser scanning datasets is their often limited spatial and temporal coverages. By combining airborne laser scanning with BAPs generated from the Landsat archive, these structural datasets can be imputed across time and space, providing coverage far beyond the initial spatial coverage of the LiDAR acquisitions [@matasciThreeDecadesForest2018; @coops2021]. The Landsat archive can now provide researchers and end-users with high quality, value-added datasets, such as land cover [@hermosillaDisturbanceInformedAnnualLand2018], forest disturbances [@hermosillaRegionalDetectionCharacterization2015], and 3D forest structure [@matasciThreeDecadesForest2018].
+While Landsat provides an excellent dataset for picturing the environment in 2D (e.g. land cover, disturbances), airborne laser scanning allow for very detailed and accurate depictions of the 3D forest structure [@wulderLidarSamplingLargearea2012]. One common problem associated with these airborne laser scanning datasets is their often limited spatial and temporal coverages. By combining airborne laser scanning with BAPs generated from the Landsat archive, these structural datasets can be imputed across time and space, providing coverage far beyond the initial spatial coverage of the LiDAR acquisitions [@matasciThreeDecadesForest2018; @coops2021]. The Landsat archive can now provide researchers and end-users with high quality, value-added datasets, such as land cover [@hermosillaDisturbanceInformedAnnualLand2018], forest disturbances [@hermosillaRegionalDetectionCharacterization2015], and 3D forest structure [@matasciThreeDecadesForest2018]. These datasets are openly available online at <http://opendata.nfis.org/mapserver/nfis-change_eng.html>.
 
 #### Land Cover
 
@@ -194,17 +194,19 @@ Forest structure metrics (lorey's height, total aboveground biomass, elevation c
 
 ## Analysis
 
-Our approach was as follows: first, we examined ecozonal and land cover proportions in British Columbia throughout the province, as well as on a elevation gradient between protected and unprotected areas. Secondly, we examined disturbance rates on a latitudinal gradient across the province. Finally, we examined forest structural attributes at a finer ecosystem classification level, statistically comparing between protected and unprotected areas, and compare forest structural attribute means in ecosystem subzones to determine which structures are missing from the PA network in British Columbia
+To meet our analysis objectives, our approach was as follows: first, we examined ecozonal and land cover proportions in British Columbia throughout the province, as well as a function of elevation between protected and unprotected areas. Secondly, we examined disturbance rates on a latitudinal gradient across the province. Finally, we examined forest structural attributes at a finer ecosystem classification level, statistically comparing between protected and unprotected areas, and compare forest structural attribute means in ecosystem subzones to determine which structures are missing from the PA network in British Columbia
 
 ### Pre-processing
 
-Forest cover classes (deciduous, broadleaf, mixed-wood, and wetland-treed) were used to generate land cover masks to focus the analysis on forested land cover pixels. Wetland classes (wetland, and wetland-treed) were also used to generate a wetland mask. Pixels harvested within the last 35 years were removed from forest structural attribute rasters in both protected and unprotected areas, in order to compare non-anthropogenically disturbed areas. BEC subzones and PA boundaries were intersected in order to create protected and unprotected BEC subzone masks for ease of processing. Each BEC subzone mask had tabular data created for analysis, in order to aggregate land cover, BEC zones, disturbances, by elevation and latitude.
+The raster data (Section \@ref(satellite-imagery)) was retrieved in a different format than what is available online, with each raster divided into UTM zones. In order to accommodate the provincial extent of the analysis, the five UTM zones covered by BC (UTM 7-11) were converted into provincial mosaics. Non-overlapping UTM masks were applied to the data before mosaicing, in order to preserve the information with the least deformation at the edges of the UTM projections.
 
-BEC zones and land cover classifications were aggregated to protected and unprotected areas in order to determine the proportion of each zone under the protected classifications. This was further examined along an elevational gradient, at bin sizes of `r elev_agg`m. Forest disturbances were aggregated along a latitudinal gradient with bin sizes of `r lat_agg` pixels. The mean values for protected and unprotected areas forest structural attributes were calculated, in order to examine the differences in their distribution and determine which structures and zones differ between protected and unprotected areas.
+Forest cover classes (deciduous, broadleaf, mixed-wood, and wetland-treed) were used to generate land cover masks to focus the analysis on forested pixels. Pixels harvested within the last 35 years were removed from forest structural attribute rasters in both protected and unprotected areas, in order to compare non-anthropogenically disturbed areas. BEC subzones and PA boundaries were intersected to create protected and unprotected BEC subzone masks for ease of processing. Each BEC subzone mask had tabular data created each input layer for analysis, in order to aggregate land cover, BEC zones, and disturbances by elevation and latitude.
+
+BEC zones and land cover classifications were aggregated to protected and unprotected areas in order to determine the proportion of each zone under the protected classifications. In this paper, zones are used to examine categorical data (land cover and disturbance), while forest structure is compared at the subzone level between PAs and their unprotected counterparts in British Columbia. Subzones with only protected or unprotected areas were excluded from hypothesis testing, but were included in zonal aggregations. Land cover and BEC data were further examined along an elevation gradient, at bin sizes of `r elev_agg`m. Forest disturbances were aggregated along a latitudinal gradient with bin sizes of `r lat_agg` pixels. The mean values for protected and unprotected areas forest structural attributes were calculated, in order to examine the differences in their distribution and determine which structures and zones differ between protected and unprotected areas.
 
 ### Statistical Analysis
 
-An equal sample of pixels (equal to the total number of pixels in protected or unprotected areas, whichever was lower) was taken from both protected and unprotected areas for each BEC subzone. For each forest structure variable and BEC subzone pair, a two-tailed T-Test was conducted, comparing protected and unprotected samples, and the Bonferroni correction was applied.
+An equal sample of cells (equal to the total number of pixels in protected or unprotected areas, whichever was lower) was sampled from both protected and unprotected areas for each BEC subzone. For each forest structure variable and BEC subzone pair, a two-tailed T-Test was conducted, comparing protected and unprotected samples, and the Bonferroni correction was applied.
 
 #### Dot Points
 
@@ -268,28 +270,28 @@ fig_cap <- paste("Proportion of BEC zone by elevation for both protected areas (
 knitr::include_graphics(here::here("outputs", "bec_elev.png"))
 ```
 
-As elevation increases in British Columbia, more and more terrestrial area is protected until \~4000m, where all terrestrial area in BC becomes protected (Figure \@ref(fig:bec-elev)). When comparing between protected and unprotected areas, some ecosystem zones are protected at differing rates. Zones commonly found at high elevations, such as the Boreal Altai Fesuce Alpine, are more common in protected areas than unprotected areas. The Coastal Western-hemlock ecosystem takes up more of the protected areas at low elevations, while Boreal White and Black Spruce takes up this area in unprotected areas. Other ecosystems are found at similar rates in both protected and unprotected areas (Figure \@ref(fig:bec-elev)).
+As elevation increases in British Columbia, increasing terrestrial area is protected until \~4000m, where all terrestrial area in BC is protected (Figure \@ref(fig:bec-elev)). When comparing between protected and unprotected areas, zones are protected at differing proportions. Zones commonly found at high elevations, such as the Boreal Altai Fesuce Alpine, are predominantly location in protected areas. Conversely, a greater proportion of the Coastal Western-hemlock ecosystem is protected at low elevations, while Boreal White and Black Spruce shows the opposite; more of this ecosystem is found in unprotected areas. Generally, the remaining ecosystems are found at similar rates in both protected and unprotected areas (Figure \@ref(fig:bec-elev)).
 
 ```{r vlce-conch, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Diagram of proportion of the area of each land cover class protected. Red dotted line indicates 2020 global protected area coverage goal, Blue dotted line indicates 2010 ecoregional protected area coverage goal, and the green dotted line indicates the overall proportion of protected areas in British Columbia.")
 knitr::include_graphics(here::here("outputs", "vlce_conch.png"))
 ```
 
-Land cover classes also vary in their proportion of the landscape protected (Figure \@ref(fig:vlce-conch)). Snow/ice, exposed/barren land, and rock/rubble have higher than average proportions of their terrestrial area protected. Mixedwood and broadleaf land cover classes are underrepresented in BC's PA network. All other classes are found at rates similar to the overall proportion of the province protected (Figure \@ref(fig:vlce-conch)).
+Land cover classes also vary by proportion protected (Figure \@ref(fig:vlce-conch)). Snow/ice, exposed/barren land, and rock/rubble have higher than average proportions protected. Conversely, mixedwood and broadleaf land cover classes are underrepresented in BC's PA network. All other classes are found at rates similar to the overall proportion of the province protected (Figure \@ref(fig:vlce-conch)).
 
 ```{r lcc-elev, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Proportion of each land cover class by elevation for both protected areas (left), and unprotected areas (centre). The rightmost figure represents the proportion of terrestrial area that is protected at each elevation.")
 knitr::include_graphics(here::here("outputs", "lcc_elev.png"))
 ```
 
-Similar to BEC zones (Figure \@ref(fig:bec-elev), land cover classes also vary with elevation (Figure \@ref(fig:lcc-elev). Snow and ice make up a large proportion of PAs at high altitudes. The only water present in high elevations is found in lakes in protected areas, mostly above 3500m. At lower elevations in unprotected areas, mixedwood forest is a more common forest type than in PAs. Wetland classes are found less frequently in the 400-900m range in unprotected areas than in PAs.
+Similar to BEC zones (Figure \@ref(fig:bec-elev), land cover classes also vary with elevation (Figure \@ref(fig:lcc-elev). Expectedly, snow and ice make up a large proportion of PAs at high altitudes. The only water present in high elevations is found in lakes within protected areas, mostly above 3500m. At lower elevations in unprotected areas, mixedwood forest is a more common forest type than in PAs. Wetland classes are found less frequently in the 400-900m range in unprotected areas than in PAs.
 
 ```{r lat-dist, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Proportion of area disturbed by latitude from 1984 to 2019 in protected areas (left), and unprotected areas (centre). The rightmost figure represents the proportion of terrestrial area that is protected at each latitude.")
 knitr::include_graphics(here::here("outputs", "latitude_disturbance_plot.png"))
 ```
 
-Disturbance regimes in British Columbia since 1984 in protected and unportected areas are shown in Figure \@ref(fig:lat-dist). Fire regimes are similar between both protected and unprotected strata at all latitudes. Harvesting is not common in PAs, while it is frequently found in unprotected areas. Within unprotected areas, harvesting is more common at lower latitudes.
+Fire regimes are similar between protected and unprotected strata at all latitudes indicating a lack of fire suppression inside park boundaries (Figure \@ref(fig:lat-dist). As anticipated by the IUCN designations, harvesting is rare within PAs, and within unprotected areas, harvesting is more common at lower latitudes.
 
 ```{r structure-cloud, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Scatterplots of mean BEC subzone forest structure attributes in protected (x-axis), and unprotected (y-axis) areas of British Columbia. Dotted line indicates 1:1 line.")
@@ -298,27 +300,37 @@ knitr::include_graphics(here::here("outputs", "structure_raincloud.png"))
 
 Figure \@ref(fig:structure-cloud) shows raincloud plots of various forest structural attributes. These plots show the distribution and boxplots of BEC subzone means by protected areas status for of aboveground biomass, canopy cover, canopy height, and canopy structure in protected and unprotected BEC subzones in British Columbia.
 
-```{r structure-3d-scatter, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("3d vector diagram of BEC zones  forest structure attributes across British Columiba. Dots indicate the protected area means, and arrowheads indicate unprotected area means.")
-knitr::include_graphics(here::here("outputs", "zones_3d_scatter.png"))
-```
-
-Figure \@ref(fig:structure-3d-scatter) displays a 3-dimensional vector diagram of the means of three forest structure attributes (forest height, vertical complexity, and canopy cover) from PAs (dots) to unprotected areas (arrowheads). Coastal Douglas-fir, interior mountain-heather alpine, and ponderosa pine all have large vectors, indicating a large difference in forest structural means in these subzones. Notably, in these three zones, forest heights are smaller in unprotected areas than in protected areas. Coastal western hemlock, bunchgrass, and boreal white and black spruce have medium sized vectors, showing more similarity between PAs and unprotected areas. All others have small vectors, indicating that their mean forest structural attributes are very similar between PAs and unprotected areas.
-
 ```{r t-test-plot, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Boxplot of proportion of ecosystem subzone which have significant p-values from a two-tailed t-test with the Bonferroni correction (n = 496) applied at a significance level of 0.05.")
 knitr::include_graphics(here::here("outputs", "t_tests_scatter.png"))
 ```
 
-Figure \@ref(fig:t-test-plot) shows the subzonal proportional significance (P \< 0.01) by zone of the 496 t-tests by forest structural variable. Higher percentages indicate that a zone has more dissimilar subzones than lower percentages. At least half of all subzones in each zone are significantly different (exception being ponderosa pine, which has one subzone which is not significantly different in canopy structure). The median values for canopy height, canopy cover, and aboveground biomass are all 100% significantly different.
+Figure \@ref(fig:t-test-plot) shows the subzonal proportional significance (P \< 0.01) by zone of the 496 t-tests by forest structural variable. Higher percentages indicate that a zone has more dissimilar subzones than lower percentages. At least half of all subzones in each zone are significantly different (exception being ponderosa pine, which has one subzone that is not significantly different in canopy structure). The median values for canopy height, canopy cover, and aboveground biomass are all 100% significantly different.
+
+```{r structure-3d-scatter, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("3d vector diagram of BEC zones  forest structure attributes across British Columiba. Dots indicate the protected area means, and arrowheads indicate unprotected area means.")
+knitr::include_graphics(here::here("outputs", "zones_3d_scatter.png"))
+```
+
+Figure \@ref(fig:structure-3d-scatter) displays a 3-dimensional vector diagram of the forest structural description (forest height, vertical complexity, and canopy cover) of each zone in both protected (dots) and unprotected areas (arrowheads). Coastal Douglas-fir, interior mountain-heather alpine, and ponderosa pine all have large vectors, indicating a large difference in forest structural means in these subzones. Notably, in these three zones, forest heights are smaller in unprotected areas than in protected areas. Coastal western hemlock, bunchgrass, and boreal white and black spruce have medium sized vectors, showing more similarity between PAs and unprotected areas. All others have small vectors, indicating that their mean forest structural attributes are very similar between PAs and unprotected areas.
 
 # Discussion
 
-Protected areas conservation is an effective means of conserving biodiversity and valuable ecosystem services. Currently, many nations and international governments use proportional area protected as a critical metric for assessing progress towards biodiversity conservation. However, these metrics do not assess the effectiveness of protected area networks, nor do they assess how representative PAs are at protecting the ecosystems they aim to protect. To face these challenges, we examined the protected area network of British Columbia using satellite remote sensing data.
+Recently developed remote sensing datasets are beginning to provide wall to wall coverage of forest structure attributes across entire jurisdictions These datasets are allowing researchers to compared PAs to their unprotected counterparts in novels ways. As an indicator of biodiversity [@guo2017], being able to track these forest structure metrics across an entire province - such as BC - allows for parks management to make informed decisions on the location of new PAs with respect to missing forest structures. By applying this analysis to each ecozone within the province, we can determine not only which ecozones need better representation, but what types of forests should be represented.
+
+While it is simple to calculate proportion of the landscape protected, it is more difficult to monitor the actual effectiveness of PAs. In this paper we examined both protected proportions of BEC zones, land cover classes, as well as effectiveness through forest disturbances and forest structural attributes. We found that high elevation, low productity ecosystems are overrepresented in BC's protected area network (Figure \@ref(fig:bec-conch); Figure \@ref(fig:vlce-conch)). For disturbances, we found similar results to @boltonUncoveringRegionalVariability2019, in that harvesting is most prevalent at low latitudes in unprotected areas, and that fire regimes are similar between protected and unprotected areas (Figure \@ref(fig:lat-dist)).
+
+Forest structural attributes were significantly different (P \< 0.01) in the majority of subzones (85%).
+
+Possible future research could involve looking
+
+One notable ecosystem in BC is the Coastal Douglas-fir zone. It is composed of a single subzone, moist maritime, and is the smallest BEC zone in British Columbia (Table \@ref(tab:bec-table)). It is also the least protected by area, with only 4.8% of it's terrestrial area protected. Beyond this, it has one of the largest forest structural differences,
+
+Monitoring the effectiveness of PAs is a difficult but important task. It is beyond time to move past simple ecosystem proportion metrics for assessing the effectiveness of protected areas. The advent of free
 
 *\#\#\#i think this can be in the discussion as sort of limitations*
 
--   While not all aspects of ecological integrity can be effectively monitored from space, those that can provide powerful insights into the effectiveness of PAs when examined spatially (when compared to unprotected areas), or temporally [@woodleyMonitoringMeasuringEcosystem1993].
+-   While not all aspects of ecological integrity can be effectively monitored from space, those that can provide insight into the effectiveness of PAs when examined spatially (when compared to unprotected areas), or temporally [@woodleyMonitoringMeasuringEcosystem1993].
 
 -   Shown representation of proportions for bec zones is off, and also changes with elevation in PAs and nPA. Forest structure also differ in some cases. large samples sizes....
 
@@ -368,31 +380,3 @@ Add packages for both R and Python here.
 # (APPENDIX) APPENDIX {.unnumbered}
 
 # Appendix A -- Unused Figures {.unnumbered}
-
-```{r bec-donut, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("Donut diagram of the BEC proportions in protected areas (interior), and unprotected areas (exterior) in British Columbia.")
-knitr::include_graphics(here::here("outputs", "bec_double_donut.png"))
-```
-
-Figure \@ref(fig:bec-donut) indicates...
-
-```{r vlce-donut, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("Donut diagram of the land cover class proportions in protected areas (interior), and unprotected areas (exterior) in British Columbia.")
-knitr::include_graphics(here::here("outputs", "vlce_double_donut.png"))
-```
-
-Figure \@ref(fig:vlce-donut) indicates...
-
-```{r cdf-density, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("Density diagrams of forest structural attributes in the Coastal Douglas Fir BEC zone. Significance denoted with *. (SIGNIFICANCE NOT CURRENTLY IMPLEMENTED).")
-knitr::include_graphics(here::here("outputs", "vignette_colour_density.png"))
-```
-
-Figure \@ref(fig:cdf-density) indicates...
-
-```{r fw-scatter, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("Scatterplots of forest (left) and wetland (right) proportions in protected areas (x-axis) and unprotected areas (y-axis).")
-knitr::include_graphics(here::here("outputs", "forest_wetland_scatter.png"))
-```
-
-Forests and wetlands are found at similar rates in both PAs and unprotected areas in BEC subzones (Figure \@ref(fig:fw-scatter)). Forests are found at varying rates throughout the BEC zones. Wetlands are often small percentages of the subzones, except in some coastal western hemlock (CWH) subzones, where they make up over a quarter of both protected and unprotected areas. As a notable outlier, the coastal Douglas fir zone has a higher proportion of forest in PAs than in unprotected areas, as well as an above average proportion of wetlands in both PAs and unprotected areas.
