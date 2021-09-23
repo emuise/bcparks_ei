@@ -851,6 +851,16 @@ arrows_zones <- for_arrows_subzone %>%
   
 subzone_cols <- bec_cols[(keys$bec %>% pull(zone)) %in% arrows_zones]
 
+for_arrows_subzone <- for_arrows_subzone %>% 
+  mutate(label = paste(zone, subzone, sep = "-"),
+         id = group_indices(., label))
+
+# get the legend from this
+for_arrows_subzone %>%
+  ggplot(aes(x = id, y = vector_length, fill = label)) +
+  geom_col() +
+  labs(fill = "Zone-Subzone") +
+  scale_fill_scico_d()
 
 subzones_3d <- function() {
   #plotrgl()
@@ -879,7 +889,7 @@ subzones_3d <- function() {
   points3D(for_arrows_subzone$mean_elev_cv_protected, 
            for_arrows_subzone$mean_loreys_height_protected, 
            for_arrows_subzone$mean_percentage_first_returns_above_2m_protected,
-           labels = for_arrows_subzone$zone,
+           labels = for_arrows_subzone$label,
            colvar = for_arrows_subzone$id,
            #col = subzone_cols,
            add = T,
@@ -908,8 +918,6 @@ zones_img %>% image_trim() %>% image_write(here::here("outputs", "subzones_3d_sc
 ```
 
 ```{r 3d-structure-zone}
-
-
 # weighted means to account for varying subzone size
 
 for_arrows_zone <- structure %>%
@@ -923,6 +931,24 @@ for_arrows_zone <- structure %>%
   pivot_wider(names_from = protected, values_from = starts_with("mean")) %>%
   #filter(zone != "SBPS") %>%
   mutate(id = row_number())
+
+structure %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  dplyr::select(!starts_with("sd")) %>%
+  group_by(protected, zone) %>%
+  summarize(mean_elev_cv = weighted.mean(mean_elev_cv, count),
+            mean_percentage_first_returns_above_2m = weighted.mean(mean_percentage_first_returns_above_2m, count),
+            mean_loreys_height = weighted.mean(mean_loreys_height, count),
+            mean_total_biomass = weighted.mean(mean_total_biomass, count)) %>%
+  mutate(across(starts_with("mean"), scale)) %>%
+  pivot_wider(names_from = protected, values_from = starts_with("mean")) %>%
+  mutate(elev_cv_dif = mean_elev_cv_protected - mean_elev_cv_unprotected,
+         loreys_height_dif = mean_loreys_height_protected - mean_loreys_height_unprotected,
+         percentage_first_returns_above_2m_dif = mean_percentage_first_returns_above_2m_protected - mean_percentage_first_returns_above_2m_unprotected) %>%
+  dplyr::select(zone, ends_with("dif")) %>%
+  mutate(vector_length = sqrt((elev_cv_dif)^2 + (loreys_height_dif)^2 + (percentage_first_returns_above_2m_dif)^2)) %>%
+  arrange(desc(vector_length))
+  
 
 zones_3d <- function() {
 
@@ -1048,9 +1074,10 @@ Latitude Disturbance
 
 ```{r lat-dist}
 bc_bounds <- read_sf(here::here("data", "shapefiles", "bc_boundary.shp"))
-bc_bbox <- bc_bounds %>% st_bbox()
 
-lat_min <- bc_bbox$ymin
+lat_bbox <- bc_bounds %>% st_transform(4326) %>% st_bbox()
+
+lat_range <- lat_bbox$ymax - lat_bbox$ymin
 
 lat_agg <- 1000
 
@@ -1065,17 +1092,20 @@ lat_df <- lat_dist %>%
          Change_Attribution = case_when(Change_Attribution == 1 ~ "Fire",
                                         Change_Attribution == 2 ~ "Harvest",
                                         TRUE ~ "None")) %>%
-  mutate(latitude = (latitude * 30) + lat_min)
+  ungroup() %>%
+  mutate(latitude = latitude - min(latitude),
+         per_lat = latitude / max(latitude),
+         lat_real = (per_lat * lat_range) + lat_bbox$ymin)
 
 dist_colours <-  pal_igv("default")(3)[c(2, 3, 1)]
 
 lat_plot <- lat_df %>%
-  ggplot(aes(x = latitude, y = perc, fill = Change_Attribution)) +
+  ggplot(aes(x = lat_real, y = perc, fill = Change_Attribution)) +
   geom_area() +
   facet_wrap(~str_to_title(protected)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
   coord_flip(ylim = c(.75, 1)) +
-  labs(x = "Latitude",
+  labs(x = expression("Latitude " ( degree)),
        y = "Percent Disturbed",
        fill = "Disturbance") +
   theme(legend.position = "bottom") +

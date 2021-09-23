@@ -96,28 +96,6 @@ As Canada progresses towards the national goal of 25% of terrestrial area protec
 
 In this study, we (1) seek to enshrine in peer-reviewed literature the results found of @environmentalreportingbc2016, in that PAs in British Columbia are biased towards high-elevation, low-productivity regions of the province, and (2) identify gaps in forest structures in PAs in the province. The identified gaps will highlight which additional forest structures are required to be captured within protected areas to ensure equal representation of the various ecozones. To accomplish this, we examined the bias in PA placement by comparing ecoregional PA coverage and land cover classes by elevation, and disturbances by latitude across protected and unprotected areas in British Columbia, Canada. Following this, we calculate representative forest structural attributes for each BEC zone in order to determine the differences between PAs and unprotected areas and then use this information to determine the most and least similar forest structures. Results will allow parks management to better consider forest structure when planning PA acquisitions.
 
-## Dot Points
-
--   Leverage open data to examine ecological integrity in BC PAs
-
--   Compare these to nPAs (non-protected areas) at multiple scales, using t-test
-
-    -   BEC Zone scale for land cover and distrubance
-
-        -   Note that these have been previously explored
-
-    -   SUbzones for structural attributes
-
-        -   to my knowledge not explored yet
-
--   results will
-
-    -   inform parks management on which bec zones accurately represent their environments
-
-    -   allow parks management to see what types of forest structures are missing from the PA network
-
-    -   provide novel information on the status of protected area forest structural attributes
-
 # Methods
 
 ## Study Area
@@ -182,7 +160,7 @@ While Landsat provides an excellent dataset for picturing the environment in 2D 
 
 #### Land Cover
 
-Land cover information for Canada from 1984-2019 was produced following @hermosillaDisturbanceInformedAnnualLand2018 using the Virtual Land Cover Engine framework. It includes eleven land cover classes, all of which are present in British Columbia. To accomplish this, an annual BAP surface reflectance image composite was created from Landsat imagery [@hermosillaMassDataProcessing2016], taking into consideration the annual forest changes generated while using the Composite 2 Change approach [@hermosillaMassDataProcessing2016]. To classify the BAP composite, a random forest classifier was used, and a Hidden Markov Model was applied to ensure logical land cover transitions [@hermosillaDisturbanceInformedAnnualLand2018].
+Land cover information for Canada from 1984-2019 was produced following @hermosillaDisturbanceInformedAnnualLand2018 using the Virtual Land Cover Engine framework. It includes eleven land cover classes, all of which are present in British Columbia. To accomplish this, an annual BAP surface reflectance image composite was created from Landsat imagery [@hermosillaMassDataProcessing2016], taking into consideration the annual forest changes generated while using the Composite 2 Change approach [@hermosillaMassDataProcessing2016]. To classify the BAP composite, a the random forest algorithm was used, and a Hidden Markov Model was applied to ensure logical land cover transitions between years [@hermosillaDisturbanceInformedAnnualLand2018].
 
 #### Forest Disturbances
 
@@ -202,40 +180,11 @@ The raster data (Section \@ref(satellite-imagery)) was retrieved in a different 
 
 Forest cover classes (deciduous, broadleaf, mixed-wood, and wetland-treed) were used to generate land cover masks to focus the analysis on forested pixels. Pixels harvested within the last 35 years were removed from forest structural attribute rasters in both protected and unprotected areas, in order to compare non-anthropogenically disturbed areas. BEC subzones and PA boundaries were intersected to create protected and unprotected BEC subzone masks for ease of processing. Each BEC subzone mask had tabular data created each input layer for analysis, in order to aggregate land cover, BEC zones, and disturbances by elevation and latitude.
 
-BEC zones and land cover classifications were aggregated to protected and unprotected areas in order to determine the proportion of each zone under the protected classifications. In this paper, zones are used to examine categorical data (land cover and disturbance), while forest structure is compared at the subzone level between PAs and their unprotected counterparts in British Columbia. Subzones with only protected or unprotected areas were excluded from hypothesis testing, but were included in zonal aggregations. Land cover and BEC data were further examined along an elevation gradient, at bin sizes of `r elev_agg`m. Forest disturbances were aggregated along a latitudinal gradient with bin sizes of `r lat_agg` pixels. The mean values for protected and unprotected areas forest structural attributes were calculated, in order to examine the differences in their distribution and determine which structures and zones differ between protected and unprotected areas.
+BEC zones and land cover classifications were aggregated to protected and unprotected areas in order to determine the proportion of each zone under the protected classifications. In this paper, zones are used to examine categorical data (land cover and disturbance), while forest structure is compared at the subzone level between PAs and their unprotected counterparts in British Columbia. Subzones with only protected or unprotected areas were excluded from hypothesis testing, but were included in zonal aggregations. Land cover and BEC data were further examined along an elevation gradient, at bin sizes of `r elev_agg`m. Forest disturbances were aggregated along a latitudinal gradient with bin sizes of `r lat_agg` pixels. The mean values for protected and unprotected areas forest structural attributes were calculated, in order to examine the differences in their distribution and determine which structures and zones differ between protected and unprotected areas. These were also converted into z-scores in order to determine the greatest standardized vector magnitude when comparing canopy cover, elevation covariance, and forest height between protected and unprotected areas.
 
 ### Statistical Analysis
 
 An equal sample of cells (equal to the total number of pixels in protected or unprotected areas, whichever was lower) was sampled from both protected and unprotected areas for each BEC subzone. For each forest structure variable and BEC subzone pair, a two-tailed T-Test was conducted, comparing protected and unprotected samples, and the Bonferroni correction was applied.
-
-#### Dot Points
-
--   Mosaiced NTEMS data, with edges of UTM zones removed
-
--   Forest masks generated from land cover
-
--   Masked out non-forest pixels from forest structure data using forest masks
-
--   BEC zones and PAs intersected to determine proportions of each bec zone protected
-
--   Intersect turned into masks by BEC subzone and PA status
-
--   Each pixel turned into csv for bec subzone and PA status
-
-    -   Includes: elevation, forest structure (canopy cover, lorey's height, total biomass, canopy structure)\
-        land cover, change attribution, change year, latitude, protected status, subzone, and year of data
-
--   mean structure for each variable and bec zone and PA status generated
-
--   equal random sample of forested pixels generated for PA and nPA for forest structure attributes
-
-    -   2 sided t-tests ran; bonferroni correction applied
-
--   Land cover aggregated by protected status and elevation
-
--   BEC coverage aggregated by protected status and elevation
-
--   disturbances aggregated by protected status and LATITUDE
 
 # Results
 
@@ -293,6 +242,53 @@ knitr::include_graphics(here::here("outputs", "latitude_disturbance_plot.png"))
 
 Fire regimes are similar between protected and unprotected strata at all latitudes indicating a lack of fire suppression inside park boundaries (Figure \@ref(fig:lat-dist). As anticipated by the IUCN designations, harvesting is rare within PAs, and within unprotected areas, harvesting is more common at lower latitudes.
 
+```{r t-test-plot, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("Boxplot of proportion of ecosystem subzone which have significant p-values from a two-tailed t-test with the Bonferroni correction (n = 496) applied at a significance level of 0.05.")
+knitr::include_graphics(here::here("outputs", "t_tests_scatter.png"))
+```
+
+Figure \@ref(fig:t-test-plot) shows the subzonal proportional significance (P \< 0.01) by zone of the 496 t-tests by forest structural variable. Higher percentages indicate that a zone has more dissimilar subzones than lower percentages. At least half of all subzones in each zone are significantly different (exception being Ponderosa Pine, which has one subzone that is not significantly different in canopy structure). The median values for canopy height, canopy cover, and aboveground biomass are all 100% significantly different.
+
+```{r structure-3d-scatter, fig.cap = fig_cap, echo = FALSE}
+fig_cap <- paste("3d vector diagram of BEC zones  forest structure attributes across British Columiba. Dots indicate the protected area means, and arrowheads indicate unprotected area means.")
+knitr::include_graphics(here::here("outputs", "zones_3d_scatter.png"))
+```
+
+Figure \@ref(fig:structure-3d-scatter) displays a 3-dimensional vector diagram of the forest structural description (forest height, vertical complexity, and canopy cover) of each zone in both protected (dots) and unprotected areas (arrowheads). Forests are generally taller in PAs (Figure \@ref(fig:structure-3d-scatter)). Scalar distances of attribute z-scores were also calculated, with the Coastal Douglas-fir zone having the largest difference between protected and unprotected areas.
+
+# Discussion
+
+Recently developed remote sensing datasets are beginning to provide wall to wall coverage of forest structure attributes across entire jurisdictions [SOURCE]. These datasets are allowing researchers to compare PAs to their unprotected counterparts in novels ways. Being able to track forest structure metrics, an indicator of biodiversity [@guo2017], across wide swaths of land allows for park managersto make informed decisions on the location of new PAs with respect to missing forest structures. By applying this analysis to each ecozone within the province, we can determine not only which ecozones need additional representation (the proportional metric), but what types of forest structures should be represented.
+
+Internationally, biodiversity preservation targets aim to protect a proportion of the total terrestrial area [@cbd2010]. Frequently, new protected areas are placed in high-elevation, low-productivity ecosystems both globally [@venter2014; @joppa2009; @venter2018], and in British Columbia [@wang2020]. We found that this was the case in both ecosystems (Figure \@ref(fig:bec-conch)) and land cover classes (Figure \@ref(fig:vlce-conch)) across BC. Alpine ecosystems are more commonly protected, and the land cover classes associated with them (rock/rubble, snow/ice, exposed/barren land). As elevation increases, theses ecosystem and land cover classes continue to become more dominant (Figures \@ref(fig:bec-elev) & \@ref(fig:lcc-elev)). It is also relevant to note that as elevation increases, proportion protected also increases, up to 100% protected above 4000m.
+
+When examining disturbances, we found similar results to @boltonUncoveringRegionalVariability2019, in that harvesting is most prevalent at low latitudes in unprotected areas, and that fire regimes are similar between protected and unprotected areas (Figure \@ref(fig:lat-dist)). Our results agree with the author's conclusions that northern areas are less frequently harvested, while fires are similar across PAs and unprotected areas [@boltonUncoveringRegionalVariability2019].
+
+Our analysis showed that the majority of structural attributes were significantly different in BEC subzones (Figure \@ref(fig:t-test-plot)). Analyzing the mean structural attributes in tandem showed that many zones' protected areas were different from their unprotected counterparts. Coastal Douglas-fir, a zone with a single subzone, had the largest variation between protected and unprotected areas in the three forest structural attributes examined. The unprotected forests were significantly less tall, had significantly less canopy cover, and significantly higher elevation covariance (vertical forest structure; Figure \@ref(fig:structure-3d-scatter)). In addition to this, it was the least protected ecozone by area, with only 4.8% of the total terrestrial area protected. In this specific ecozone, not only does additional area need to be protected to meet national goals, different forest structures need to be included in these new protected areas.
+
+Forests in PAs were generally found to be significantly larger than forests in unprotected areas (Figure \@ref(fig:t-test-plot). While forest age can be challenging to determine from remote sensing, forest structure has shown moderate success in the approximation of stand age [@maltamo2020]. Forest height, for example, is a predictor of successional stage. With this, the taller forests found in PAs are likely older forests than those found in unprotected areas. While older forests generally contribute more to ecological services, it is important to protect a range of habitats at differing successional stages in order to conserve the processes and habitants not found in older forest communities [@kuuluvainen2018].
+
+Monitoring the effectiveness of PAs is a difficult but important task. It is beyond time to move past simple ecosystem proportion metrics for assessing the effectiveness of protected areas. The advent of free and open global datasets can allow for the monitoring of protected area health across the globe [@nagendraRemoteSensingConservation2013]. Future research monitoring protected area health using satellite remote sensing could focus on implementing essential biodiversity variables [@pereira2013] into their monitoring scheme. Advancing research towards these variables would not only benefit PA monitoring projects, but also biodiversity monitoring projects across the globe. Other research avenues include comparing the areas directly outside of PA's for forest structure using methodologies similar to @boltonUncoveringRegionalVariability2019 and @soverelCharacterizingForestFragmentation2010. Beyond this, examining post-disturbance forest structural attribute recovery in both PAs and unprotected areas would assess the effectiveness of PAs for promoting regeneration.
+
+\newpage
+
+# Acknowledgments
+
+Add packages for both R and Python here.
+
+\newpage
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+\newpage
+
+# (APPENDIX) APPENDIX {.unnumbered}
+
+# Appendix A -- Unused Figures {.unnumbered}
+
 ```{r structure-cloud, fig.cap = fig_cap, echo = FALSE}
 fig_cap <- paste("Scatterplots of mean BEC subzone forest structure attributes in protected (x-axis), and unprotected (y-axis) areas of British Columbia. Dotted line indicates 1:1 line.")
 knitr::include_graphics(here::here("outputs", "structure_raincloud.png"))
@@ -300,35 +296,60 @@ knitr::include_graphics(here::here("outputs", "structure_raincloud.png"))
 
 Figure \@ref(fig:structure-cloud) shows raincloud plots of various forest structural attributes. These plots show the distribution and boxplots of BEC subzone means by protected areas status for of aboveground biomass, canopy cover, canopy height, and canopy structure in protected and unprotected BEC subzones in British Columbia.
 
-```{r t-test-plot, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("Boxplot of proportion of ecosystem subzone which have significant p-values from a two-tailed t-test with the Bonferroni correction (n = 496) applied at a significance level of 0.05.")
-knitr::include_graphics(here::here("outputs", "t_tests_scatter.png"))
-```
+\newpage
 
-Figure \@ref(fig:t-test-plot) shows the subzonal proportional significance (P \< 0.01) by zone of the 496 t-tests by forest structural variable. Higher percentages indicate that a zone has more dissimilar subzones than lower percentages. At least half of all subzones in each zone are significantly different (exception being ponderosa pine, which has one subzone that is not significantly different in canopy structure). The median values for canopy height, canopy cover, and aboveground biomass are all 100% significantly different.
+### Dot Points - intro
 
-```{r structure-3d-scatter, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("3d vector diagram of BEC zones  forest structure attributes across British Columiba. Dots indicate the protected area means, and arrowheads indicate unprotected area means.")
-knitr::include_graphics(here::here("outputs", "zones_3d_scatter.png"))
-```
+-   Leverage open data to examine ecological integrity in BC PAs
 
-Figure \@ref(fig:structure-3d-scatter) displays a 3-dimensional vector diagram of the forest structural description (forest height, vertical complexity, and canopy cover) of each zone in both protected (dots) and unprotected areas (arrowheads). Coastal Douglas-fir, interior mountain-heather alpine, and ponderosa pine all have large vectors, indicating a large difference in forest structural means in these subzones. Notably, in these three zones, forest heights are smaller in unprotected areas than in protected areas. Coastal western hemlock, bunchgrass, and boreal white and black spruce have medium sized vectors, showing more similarity between PAs and unprotected areas. All others have small vectors, indicating that their mean forest structural attributes are very similar between PAs and unprotected areas.
+-   Compare these to nPAs (non-protected areas) at multiple scales, using t-test
 
-# Discussion
+    -   BEC Zone scale for land cover and distrubance
 
-Recently developed remote sensing datasets are beginning to provide wall to wall coverage of forest structure attributes across entire jurisdictions These datasets are allowing researchers to compared PAs to their unprotected counterparts in novels ways. As an indicator of biodiversity [@guo2017], being able to track these forest structure metrics across an entire province - such as BC - allows for parks management to make informed decisions on the location of new PAs with respect to missing forest structures. By applying this analysis to each ecozone within the province, we can determine not only which ecozones need better representation, but what types of forests should be represented.
+        -   Note that these have been previously explored
 
-While it is simple to calculate proportion of the landscape protected, it is more difficult to monitor the actual effectiveness of PAs. In this paper we examined both protected proportions of BEC zones, land cover classes, as well as effectiveness through forest disturbances and forest structural attributes. We found that high elevation, low productity ecosystems are overrepresented in BC's protected area network (Figure \@ref(fig:bec-conch); Figure \@ref(fig:vlce-conch)). For disturbances, we found similar results to @boltonUncoveringRegionalVariability2019, in that harvesting is most prevalent at low latitudes in unprotected areas, and that fire regimes are similar between protected and unprotected areas (Figure \@ref(fig:lat-dist)).
+    -   SUbzones for structural attributes
 
-Forest structural attributes were significantly different (P \< 0.01) in the majority of subzones (85%).
+        -   to my knowledge not explored yet
 
-Our analysis showed that the majority of structural attributes were significantly different in most ecosystem subzones (Figure \@ref(fig:t-test-plot)).
+-   results will
 
-Possible future research could involve looking at near ecosystems to protected areas, utilizing the greater park ecosystem concept from @boltonUncoveringRegionalVariability2019. Utilizing multiple distances within this concept would allow researchers to determine if and how far from PAs the forest structure is different in surrounding unprotected areas.
+    -   inform parks management on which bec zones accurately represent their environments
 
-One notable ecosystem in BC is the Coastal Douglas-fir zone. It is composed of a single subzone, moist maritime, and is the smallest BEC zone in British Columbia (Table \@ref(tab:bec-table)). It is also the least protected by area, with only 4.8% of it's terrestrial area protected. Beyond this, it has one of the largest forest structural differences, with protected forests being taller,
+    -   allow parks management to see what types of forest structures are missing from the PA network
 
-Monitoring the effectiveness of PAs is a difficult but important task. It is beyond time to move past simple ecosystem proportion metrics for assessing the effectiveness of protected areas. The advent of free
+    -   provide novel information on the status of protected area forest structural attributes
+
+### Dot Points - methods
+
+-   Mosaiced NTEMS data, with edges of UTM zones removed
+
+-   Forest masks generated from land cover
+
+-   Masked out non-forest pixels from forest structure data using forest masks
+
+-   BEC zones and PAs intersected to determine proportions of each bec zone protected
+
+-   Intersect turned into masks by BEC subzone and PA status
+
+-   Each pixel turned into csv for bec subzone and PA status
+
+    -   Includes: elevation, forest structure (canopy cover, lorey's height, total biomass, canopy structure)\
+        land cover, change attribution, change year, latitude, protected status, subzone, and year of data
+
+-   mean structure for each variable and bec zone and PA status generated
+
+-   equal random sample of forested pixels generated for PA and nPA for forest structure attributes
+
+    -   2 sided t-tests ran; bonferroni correction applied
+
+-   Land cover aggregated by protected status and elevation
+
+-   BEC coverage aggregated by protected status and elevation
+
+-   disturbances aggregated by protected status and LATITUDE
+
+### dot points - discussion
 
 *\#\#\#i think this can be in the discussion as sort of limitations*
 
@@ -341,8 +362,6 @@ Monitoring the effectiveness of PAs is a difficult but important task. It is bey
 -   Contributes to discussion about examining forests in protected and unprotected areas
 
 -   Real novel findings is that forest structure attributes vary between protected and unprotected areas.
-
--   CDF is underepresented in PA proportions, AND its forest structure is different from the nPA.
 
 -   Future research: temporal, index of forest structure compared to nPA, compare to local envmt (bolton paper) but in forest structure context
 
@@ -362,23 +381,6 @@ Insights provided by remote sensing datasets can allow British Columbia to conti
 
 # Journals
 
-Ecological Applications (<https://www.resurchify.com/impact/details/20287>) - IF 4.248
+Ecological Applications ([\<https://www.resurchify.com/impact/details/20287\>](https://www.resurchify.com/impact/details/20287){.uri}) - IF 4.248
 
-Ecological Modelling (<https://www.journals.elsevier.com/ecological-modelling>) - IF 2.497
-
-# Acknowledgments
-
-Add packages for both R and Python here.
-
-\newpage
-
-# References {.unnumbered}
-
-::: {#refs}
-:::
-
-\newpage
-
-# (APPENDIX) APPENDIX {.unnumbered}
-
-# Appendix A -- Unused Figures {.unnumbered}
+Ecological Modelling ([\<https://www.journals.elsevier.com/ecological-modelling\>](https://www.journals.elsevier.com/ecological-modelling){.uri}) - IF 2.497
