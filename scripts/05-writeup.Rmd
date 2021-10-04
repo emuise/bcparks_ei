@@ -1,32 +1,24 @@
 ---
 title: 'An ecoregional approach to protected area monitoring using satellite remote sensing in British Columbia'
 author:
-  - Evan Muise:
-      email: evanmuise@gmail.com
+  - Evan R. Muise:
+      email: evanmuis@student.ubc.ca
       institute: frm
       correspondence: true
-  - name: Nicholas Coops
+  - name: Nicholas C. Coops
     institute: frm
   - name: Txomin Hermosilla
     institute: cfs
-  - name: Stephen Ban
+  - name: Stephen S. Ban
     institute: bcp
 institute:
   - frm: Department of Forest Resource Management, 2424 Main Mall, University of British Columbia, Vancouver, British Columbia, V6T 1Z4, Canada
   - cfs: Canadian Forest Service (Pacific Forestry Centre), Natural Resources Canada, 506 West Burnside Road, Victoria, BC V8Z 1M5, Canada
   - bcp: BC Parks, Ministry of Environment and Climate Change Strategy, Victoria, British Columbia, Canada.
-abstract: "**Abstract:** Protected areas conservation is an effective means of conserving biodiversity and valuable ecosystem services. Currently, many nations and international governments use proportional area protected as a critical metric for assessing progress towards biodiversity conservation. However, these metrics do not assess the effectiveness of protected area networks, nor do they assess how representative PAs are at protecting the ecosystems they aim to protect. Within forest environments, forest structure can be a key indicator of biodiversity. To face these challenges, we examined the protected area network of British Columbia using satellite remote sensing data within British Columbia's biogeoclimatic ecosystem classification (BEC) system. First, we examined BEC ecosystem and land cover class bias in protected areas by elevation, and harvesting and fire disturbance regimes by latitude. We then examined forest structural attributes in ecosystem subzones, comparing them using the student's t-test by taking an equal sample of unharvested pixels in each subzone in protected and unprotected areas. We found that forest structural attributes are most often significantly different in protected and unprotected areas (426/496 significant at P < 0.01). We then examined a vector diagram of three structural attributes to determine the subzones with the most different structures in protected and unprotected areas. The results from this analysis will allow parks management to consider forest structure when examining new locations for protected areas in British Columbia, within the provincial ecosystem classification context. \\par \\textbf{Keywords:}**Keywords:** Protected Areas, Remote Sensing, Forest Structure, Disturbances, Land Cover, Ecological Classifications"
+abstract: "**Abstract:** Protected areas (PA) are an effective means of conserving biodiversity and protecting suites of valuable ecosystem services. Currently, many nations and international governments use proportional area protected as a critical metric for assessing progress towards biodiversity conservation. However, these metrics do not assess the effectiveness of protected area networks, nor do they assess how representative PAs are at protecting the ecosystems they aim to protect. Within forest environments, topography, stand structure, and land cover are all key drivers of biodiversity, and are well suited as indicators to assess the representation of protected areas. Here we examine the British Columbian protected area network drivers derived from freely available data across the provincial biogeoclimatic ecosystem classification (BEC) system. We examine biases in protected areas by elevation, forest disturbances, and forest structural attributes, including height, cover, and biomass. Results indicate that parks are biased topographically (p < 0.01), land cover proportions differ, and that forest structural attributes are most often significantly different in protected vs surrounding ecologically similar unprotected areas (426 of PA's signficantly different (p < 0.01)). Analysis of forest structural attributes suggests that additional parks are needed to cover various forest structure regimes acros different ecosystems. We conclude that these approahces using free and open remote sensing data are highly transferable, and can be accomplished using consistent datasets to assess PA representations globally. \\par \\textbf{Keywords:}**Keywords:** Protected Areas, Remote Sensing, Forest Structure, Disturbances, Land Cover, Ecological Classifications \\par \\textbf{Submitted to Ecological Applications}**To be submitted to: Ecological Applications**"
 output:
   bookdown::word_document2:
     reference_docx: my-styles.docx
-    fig_caption: yes
-    number_sections: yes
-    toc: no
-    keep_tex: true
-    pandoc_args:
-      - '--lua-filter=scholarly-metadata.lua'
-      - '--lua-filter=author-info-blocks.lua'
-  bookdown::pdf_document2:
     fig_caption: yes
     number_sections: yes
     toc: no
@@ -39,6 +31,14 @@ output:
     theme: default
     toc: no
     toc_float: yes
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: no
+    keep_tex: true
+    pandoc_args:
+      - '--lua-filter=scholarly-metadata.lua'
+      - '--lua-filter=author-info-blocks.lua'
   html_document: default
   pdf_document: default
 bibliography: [full_library.bib, packages.bib]
@@ -62,6 +62,8 @@ library(knitr)
 library(here)
 library(bookdown)
 library(tidyverse)
+library(officer)
+library(flextable)
 
 library(bcmaps)
 
@@ -80,17 +82,17 @@ knitr::write_bib(contrib_pkgs, pkgs_file)
 
 # Introduction
 
-Protected areas (hereafter PAs) are an integral component of biological conservation, designed to preserve ecosystem services and biodiversity both inside the PAs and in some cases the surrounding regions [@chapeMeasuringExtentEffectiveness2005; @watsonPerformancePotentialProtected2014]. In recent decades, there has been a push to conserve varying portions of the terrestrial area of the globe, with the goals increasing as time has gone on [@cbd2010; @cbd2004]. In the 2010's, the Aichi biodiversity target sought to protect 17% of the entire globe [@cbd2010]. Nationwide, the Canadian government has set the goal of protecting 25% of Canada's terrestrial area by 2025 [@eccc2021]. While increasing proportional ecosystem protection does in turn increase conservation, it does not guarantee that the protected ecosystems are representative of the entire ecosystem, or guarantee that all biodiversity will be conserved.
+Protected areas (hereafter PAs) are an integral component of biological conservation, designed to preserve ecosystem services and biodiversity both inside the PAs and in some cases the surrounding regions [@chapeMeasuringExtentEffectiveness2005; @watsonPerformancePotentialProtected2014]. In recent decades, there has been a push to conserve varying portions of the terrestrial area of the globe, with goals increasing over time [@cbd2010; @cbd2004]. In the 2010's, the Aichi biodiversity target sought to protect 17% of the entire globe [@cbd2010]. Nationwide, the Canadian government has set the goal of protecting 25% of Canada's terrestrial area by 2025 [@eccc2021]. While increasing proportional ecosystem protection does in turn increase conservation, it does not guarantee that the protected ecosystems are representative of the entire ecosystem, nor that all biodiversity within the PA will be conserved.
 
-Many conservation goals, both global and regional, are commonly based on the proportion of area protected due in part to its ease of use and calculation [@chapeMeasuringExtentEffectiveness2005; @cbd2010]. However, while the area protected is a simple metric to report on, it is not always the most effective metric, as it does not convey how effective a given PA is for protecting the inherent ecosystem services or biodiversity in the area [@chapeMeasuringExtentEffectiveness2005]. In fact, many studies do not consider areal percentages to be an effective metric for indicating biodiversity protection [@butchart2015]; the area metric heavily underestimates the global protected area required to adequately protect biodiversity, which research indicates is up to 50% of each ecoregion [@dinersteinEcoregionBasedApproachProtecting2017; @butchart2015].
+Many conservation goals, both global and regional, are commonly based on the proportion of area protected due, in part, to its ease of use and calculation [@chapeMeasuringExtentEffectiveness2005; @cbd2010]. However, while the area protected is a simple metric to report, it is often not the most effective metric, as it does not convey how effective a given PA is for protecting the inherent ecosystem services or biodiversity in the area [@chapeMeasuringExtentEffectiveness2005]. In fact, most experts and studies agree that areal percentages are not an effective metric for indicating biodiversity protection [@butchart2015]; the area metric heavily underestimates the global protected area required to adequately protect biodiversity, which research indicates is up to 50% of each ecoregion [@dinersteinEcoregionBasedApproachProtecting2017; @butchart2015].
 
-In response to issues associated with simply using protected area size as a metric for conservation, a number of other methodologies have been developed to evaluate the effectiveness of PAs [@boltonUncoveringRegionalVariability2019; @hansenTrendsVitalSigns2018; @parrishAreWeConserving2003; @gastonEcologicalEffectivenessProtected2006; @gastonEcologicalPerformanceProtected2008]. A commonly concept for PA effectiveness is e ecological integrity, defined by Parks Canada as an ecosystem having the expected "living and non-living pieces for the region", and that ecological processes should occur in the PA at the expected frequency and intensity for the region [@parkscanadaEcologicalIntegrity2019]. Subsequently, many potential ecological integrity indicator variables have been examined to capture these pieces and processes [@hansenTrendsVitalSigns2018]. These indicators can then be interpreted manually or automatically, most often through examining temporal trends within the PAs or by comparing the indicators to areas in known healthy reference ecosystems [@woodleyMonitoringMeasuringEcosystem1993].
+In response, a number of other methodologies have been developed to evaluate the effectiveness of PAs [@boltonUncoveringRegionalVariability2019; @hansenTrendsVitalSigns2018; @parrishAreWeConserving2003; @gastonEcologicalEffectivenessProtected2006; @gastonEcologicalPerformanceProtected2008]. An emerging concept, in Canadian park management in particular, is ecological integrity, defined as an ecosystem having the expected "living and non-living pieces for the region", and that ecological processes should occur in the PA at the expected frequency and intensity for the region [@parkscanadaEcologicalIntegrity2019]. Many potential ecological integrity indicators have been examined to capture biodiversity related processes within PAs [@hansenTrendsVitalSigns2018], which can then be interpreted manually or automatically, most often through examining temporal trends within the PAs or by comparing the indicators to areas in known healthy reference ecosystems [@woodleyMonitoringMeasuringEcosystem1993].
 
-Remote sensing technologies offer a key approach to deriving and monitoring indicators to assess PA effectiveness for monitoring ecological integrity [@boltonUncoveringRegionalVariability2019; @burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraParksWorkImpact2008; @olthofUsingSatelliteRemote2006; @parmenterLandUseLand2003; @soverelCharacterizingForestFragmentation2010; @pereira2013] with demonstrated capacity to detect and monitor the pieces and processes found within PAs [@nagendraRemoteSensingConservation2013; @turner2003]. Pieces, or components, of the environment, such as forested area, wetland area, rock and rubble, can be measured from space at broad spatial extents and temporal scales. While it can be difficult to directly monitor biodiversity, an integral "piece" of ecological integrity, using satellite remote sensing [@nagendra2001; @gillespie2008; @turner2003], a number of methods have been developed to indirectly measure biodiversity, namely: canopy species mapping [@nagendra2001], habitat classification [@lucas2011; @mcdermid2005], examining spectral information (and indices such as NDVI) [@gillespie2005; @feeley2005; @nagendra2010], spectral heterogeneity [@rocchini2010], ecosystem structure [@cohen2004; @goetz2007; @pôças2011; @soverelCharacterizingForestFragmentation2010], and function [@skidmore2021]. Processes, such as natural and anthropogenic disturbance regimes, including flooding, fires, harvesting, and insect outbreaks, are frequently monitored from satellite imagery [@boltonUncoveringRegionalVariability2019; @hermosillaRegionalDetectionCharacterization2015; @alsdorf2007; @kerr2003], with biogeochemical cycles being observed throiugh measures of carbon sinks and sources [@myneni2001], vegetation productivity [@running2004], and vegetation dynamics [@zhang2003]. While not a panacea for protected area monitoring, remote sensing does offer an important suite of tools for monitoring protected area networks [@nagendra2001; @nagendraRemoteSensingConservation2013].
+Remote sensing technologies offer a key approach to deriving and monitoring indicators to assess PA effectiveness for monitoring ecological integrity [@boltonUncoveringRegionalVariability2019; @burkhardMappingEcosystemService2012; @fraserMonitoringLandCover2009; @nagendraParksWorkImpact2008; @olthofUsingSatelliteRemote2006; @parmenterLandUseLand2003; @soverelCharacterizingForestFragmentation2010; @pereira2013] with a demonstrated capacity to detect and monitor key terrestrial processes occuring within PAs [@nagendraRemoteSensingConservation2013; @turner2003]. Indicators such as land cover proportion (forest type, wetland, unvegetated, etc.) can be categorized and monitored at broad spatial extents and temporal scales. Additionally, in forested PA's, protential indicators such as canopy species [@nagendra2001], habitat classification [@lucas2011; @mcdermid2005], examining spectral information (and indices such as NDVI) [@gillespie2005; @feeley2005; @nagendra2010], spectral heterogeneity [@rocchini2010], ecosystem structure [@cohen2004; @goetz2007; @pôças2011; @soverelCharacterizingForestFragmentation2010], and function [@skidmore2021]. Processes, such as natural and anthropogenic disturbance regimes, including flooding, fires, harvesting, and insect outbreaks, are frequently monitored from satellite imagery [@boltonUncoveringRegionalVariability2019; @hermosillaRegionalDetectionCharacterization2015; @alsdorf2007; @kerr2003], with biogeochemical cycles being observed throiugh measures of carbon sinks and sources [@myneni2001], vegetation productivity [@running2004], and vegetation dynamics [@zhang2003]. While not a panacea, remote sensing does offer an important suite of tools for monitoring protected area networks [@nagendra2001; @nagendraRemoteSensingConservation2013].
 
-Remote sensing also offers a cost-effective method for deriving forest structure across large extents through the use of light detection and ranging (LiDAR). When combined with satellite optical remote sensing, LiDAR data can be imputed across large regions to generate wall-to-wall coverage of forest structural attributes [@wulderLidarSamplingLargearea2012]. Diversity in vegetation structure measurements is a strong indicator of biodiversity, providing habitat, influencing food quality, and mediating microclimates [@guo2017; @gao2014]. The natural variation in vertical and horizontal forest structure has been explored using LiDAR, as well as SAR (synthetic aperture radar) data, however, comparisons between protected and unprotected areas are less frequently drawn using these methods [@nagendraRemoteSensingConservation2013].
+In forested PA's, vegetation structure can be estimated across large extents through the use of light detection and ranging (LiDAR). When combined with satellite optical remote sensing, LiDAR data can be imputed across large regions to generate wall-to-wall coverage of forest structural attributes [@wulderLidarSamplingLargearea2012]. Diversity in vegetation structure measurements is a strong indicator of biodiversity, providing habitat, influencing food quality, and mediating microclimates [@guo2017; @gao2014]. However, while the natural variation in vertical and horizontal forest structure has been extensively explored using LiDAR, comparisons between protected and unprotected areas have been less frequently drawn using these methods [@nagendraRemoteSensingConservation2013].
 
-In recent years, many studies monitoring ecological integrity or related indicators using remotely sensed data are heavily relying on free and open-source data [@boltonUncoveringRegionalVariability2019; @fraserMonitoringLandCover2009; @soverelCharacterizingForestFragmentation2010; @pôças2011; @skidmore2021]. By leveraging this cost-free data, conservation scientists are able to conduct studies across an entire jurisdiction's PA network and examine temporal changes in protected areas [@buchanan2018; @turner2015]. These changes can then be compared to unprotected areas, allowing for researchers and park managers to gauge the effectiveness of a given PA or the entire PA network [@boltonUncoveringRegionalVariability2019; @soverelCharacterizingForestFragmentation2010; @turner2015]. This methodological framework offers an improvement over using ecoregional (or global) area based approaches, in that it provides a better understanding of the efficacy of protected areas.
+Leveraging free and open-source remote sensing data products has allowed conservation scientist to increasingly be able to undertake comparisons across an entire jurisdiction's PA network [@boltonUncoveringRegionalVariability2019; @fraserMonitoringLandCover2009; @soverelCharacterizingForestFragmentation2010; @pôças2011; @skidmore2021], comparing them to ecologically similar unprotected areas [@buchanan2018; @turner2015].These comparisons allow for an assessment of the effectiveness of a given PA or the entire PA network [@boltonUncoveringRegionalVariability2019; @soverelCharacterizingForestFragmentation2010; @turner2015].
 
 As Canada progresses towards the national goal of 25% of terrestrial area protected by 2025, there is a growing need to better understand how PAs compare to unprotected areas with respect to location, ecological classifications, elevations, productivity, and structure. This adds increasing importance for considering protected area conservation goals beyond just proportional coverage. Also relevant to consider, are the biases in PA placement, which have frequently been located in cheaper, low productivity regions both globally [@venter2014; @joppa2009; @venter2018] and regionally, as is the case in British Columbia, Canada [@environmentalreportingbc2016; @wang2020; @hamann2005]. By comparing protected and unprotected areas in the province, differences can be shown across varying gradients, including latitude, elevation, and ecological classification.
 
@@ -100,18 +102,23 @@ In this study, we (1) seek to enshrine in peer-reviewed literature the results f
 
 ## Study Area
 
-British Columbia, Canada is 94.4 million hectares, of which approximately 64% is forested [@bcministryofforestsBritishColumbiaForests2003], and encapsulates a wide variety of biomes and ecosystems. This diversity of ecosystems are in part due to the its large size as well as variations in topography and climate. The existing Biogeoclimatic Ecosystem Classification (BEC) system disaggregates the ecosystems of BC into zones.. At the broadest level, 16 zone classifications are delineated based on macroclimate, climax vegetation species, and soil [@pojarBiogeoclimaticEcosystemClassification1987]. Zones are further broken down into subzones, variants, and phases based on microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. As a result BEC zones vary widely in size, as well as number of subzones (Table \@ref(tab:bec-table)).
+British Columbia, Canada covers 94.4 million ha, of which approximately 64% is forested [@bcministryofforestsBritishColumbiaForests2003], and encapsulates a wide variety of biomes and ecosystems. This diversity of ecosystems are in part due to the its large size as well as variations in topography and climate. The existing Biogeoclimatic Ecosystem Classification (BEC) system disaggregates BC ecosystems into zones; the broadest of which delineates 16 zone classifications based on macroclimate, climax vegetation species, and soil [@pojarBiogeoclimaticEcosystemClassification1987]. Zones are further broken down into subzones, variants, and phases based on microclimate, precipitation, and topography [@meidingerEcosystemsBritishColumbia1991; @pojarBiogeoclimaticEcosystemClassification1987]. As a result BEC zones vary widely in size, as well as number of subzones (Table \@ref(tab:bec-table)).
 
-```{r bec-table, message = F, echo = F}
+```{r bec-table, echo = F, warning = F, message = F}
 bec_table <- read_csv(here::here("outputs", "bec_table.csv"))
 
-names(bec_table) <- c("Zone", "Zone Name", "# of Subzones", "Total Area (ha)", "Percent Protected")
+bec_ft <- flextable(bec_table) %>%
+  set_header_labels(zone = "Zone",
+                    zone_nm = "Zone Name",
+                    n_subzones = "# of Subzones",
+                    area = "Area (ha)",
+                    perc_protected = "# Protected") %>%
+  set_caption("Number of subzones, total area, and percent protected by BEC Zone",
+              autonum = run_autonum(seq_id = "tab", bkm = "bec-table"),
+              style = "Table Caption") %>%
+  set_table_properties(layout = "autofit")
 
-knitr::kable(bec_table,
-             align = "cc",
-             caption = "Number of subzones, total area, and percent protected by BEC Zone",
-             booktabs = T,
-             longtable = T)
+bec_ft
 ```
 
 ```{r ppa-areas, message = F, echo = F}
@@ -132,7 +139,7 @@ max_area <- areas_ha %>%
 The protected area system in British Columbia is designed to serve as areas available for ecological conservation as well as human recreation [@bcparks2012]. The system consists of a network of PAs and PA complexes (multiple nearby PAs which share the same conservation goals), with large variations in size, ranging from `r min_area` to `r scales::comma_format()(max_area)` ha (Figure \@ref(fig:study-area)). Both the British Columbian [@bcparks2012] and Canada-wide protected areas mandates [@governmentofcanada2019] commit to conserving ecological integrity across the PA network. Protected areas in the BC network are frequently located in mountainous, high elevation areas, leading to underrepresentation in high productivity ecosystems [@environmentalreportingbc2016; @wang2020].
 
 ```{r study-area, fig.cap = fig_cap, echo = FALSE}
-fig_cap <- paste("Map of terrestrial British Columbia including BEC zones and the location of PAs used in this study.")
+fig_cap <- paste("Map of terrestrial British Columbia including BEC zones and the location of PAs selected in this study.")
 knitr::include_graphics(here::here("outputs", "bec_map.png"))
 ```
 
@@ -256,6 +263,71 @@ knitr::include_graphics(here::here("outputs", "zones_3d_scatter.png"))
 
 Figure \@ref(fig:structure-3d-scatter) displays a 3-dimensional vector diagram of the forest structural description (forest height, vertical complexity, and canopy cover) of each zone in both protected (dots) and unprotected areas (arrowheads). Forests are generally taller in PAs (Figure \@ref(fig:structure-3d-scatter)). Scalar distances of attribute z-scores were also calculated, with the Coastal Douglas-fir zone having the largest difference between protected and unprotected areas.
 
+```{r vector-table, message = F, echo = F, warning = F}
+for_gt <- read_csv(here::here("outputs", "vector_table.csv"))
+
+zones <- for_gt %>%
+  pull(zone)
+
+highlighter <- for_gt %>%
+  dplyr::select(zone, ends_with("change")) %>%
+  pivot_longer(cols = ends_with("change")) %>%
+  separate(name, into = c("mean", "var", "change")) %>%
+  filter(abs(value) >= 5) %>%
+  group_split(var) %>%
+  set_names("elev", "lor", "per") %>%
+  map(pull, zone)
+  
+
+index_highlight <- function(valid_zone) {
+  index_out <- zones %in% valid_zone
+  
+  return(which(index_out))
+}
+
+highlight_indexes <- map(highlighter, index_highlight)
+
+for_gt %>%
+  mutate(across(ends_with("protected"), round, digits = 2),
+         across(ends_with("change"), round, digits = 2),
+         across(ends_with("change"), paste0, "%"),
+         across(starts_with("mean_perc"), paste0, "%")) %>%
+  flextable() %>%
+  add_header_row(values = c("Zone", "Elevation Covariance", "Canopy Cover (%)", "Canopy Height (m)"),
+                 colwidths = c(1, 3, 3, 3)) %>%
+  set_header_labels(
+    mean_elev_cv_protected = "P",
+    mean_elev_cv_unprotected = "n-P",
+    mean_elev_change = "% Change",
+    mean_percentage_first_returns_above_2m_protected = "P",
+    mean_percentage_first_returns_above_2m_unprotected = "n-P",
+    mean_per_change = "% Change",
+    mean_loreys_height_protected = "P",
+    mean_loreys_height_unprotected = "n-P",
+    mean_lor_change = "% Change",
+    zone = "Zone") %>%
+  theme_booktabs(bold_header = T) %>%
+  align(part = "all", align = "center") %>%
+  border_inner_v(border = fp_border(color = "grey"), part = "all") %>%
+  merge_v(part = "header") %>%
+  colformat_num() %>%
+  #autofit() %>%
+  bg(i = highlight_indexes$elev,
+     j = 2:4,
+     bg = "grey") %>%
+  bg(i = highlight_indexes$per,
+     j = 5:7,
+     bg = "grey") %>%
+  bg(i = highlight_indexes$lor,
+     j = 8:10,
+     bg = "grey") %>%
+  set_caption("Mean values of forest structural attributes in protected areas (P), unprotected areas (n-P), as well as the percent change between the means. Zones with more than a 5% difference are highlighted.",
+              autonum = run_autonum(seq_id = "tab", bkm = "vector-table"),
+              style = "Table Caption")
+```
+
+As seen in Table \@ref(tab:vector-table)
+
 # Discussion
 
 Recently developed remote sensing datasets are beginning to provide wall to wall coverage of forest structure attributes across entire jurisdictions [SOURCE]. These datasets are allowing researchers to compare PAs to their unprotected counterparts in novels ways. Being able to track forest structure metrics, an indicator of biodiversity [@guo2017], across wide swaths of land allows for park managersto make informed decisions on the location of new PAs with respect to missing forest structures. By applying this analysis to each ecozone within the province, we can determine not only which ecozones need additional representation (the proportional metric), but what types of forest structures should be represented.
@@ -274,7 +346,8 @@ Monitoring the effectiveness of PAs is a difficult but important task. It is bey
 
 # Acknowledgments
 
-Add packages for both R and Python here.
+This research was funded by a grant from the British Columbia Ministry of Environment & Climate Change\
+Strategy. Identifier: TP21JHQ011
 
 \newpage
 

@@ -1,17 +1,17 @@
 zone,zone_nm,n_subzones,area,perc_protected
-BAFA,Boreal Altai Fescue Alpine,2,6286778.843498694,30.1%
-BG,Bunchgrass,2,257072.10326863013,11.8%
-BWBS,Boreal White and Black Spruce,5,16404142.961206604,8.6%
-CDF,Coastal Douglas-fir,1,251232.22810662375,4.8%
-CMA,Coastal Mountain-heather Alpine,3,3574039.0643482064,17.9%
-CWH,Coastal Western Hemlock,10,10795067.443437837,19.5%
-ESSF,Engelmann Spruce -- Subalpine Fir,43,17465113.03743326,17.8%
-ICH,Interior Cedar -- Hemlock,12,5538842.247147489,10.2%
-IDF,Interior Douglas-fir,12,4488085.887253612,5.9%
-IMA,Interior Mountain-heather Alpine,2,1257949.1385142568,29.2%
-MH,Mountain Hemlock,6,4059301.2085464746,19.8%
-MS,Montane Spruce,8,2863394.2587517435,9.4%
-PP,Ponderosa Pine,1,294985.26572924113,7.1%
-SBPS,Sub-Boreal Pine -- Spruce,4,2265365.7701922124,9.5%
-SBS,Sub-Boreal Spruce,11,10337497.442538884,6.7%
-SWB,Spruce -- Willow -- Birch,6,8655855.85601889,23.3%
+BAFA,Boreal Altai Fescue Alpine,2,6286778,30.1%
+BG,Bunchgrass,2,257072,11.8%
+BWBS,Boreal White and Black Spruce,5,16404142,8.6%
+CDF,Coastal Douglas-fir,1,251232,4.8%
+CMA,Coastal Mountain-heather Alpine,3,3574039,17.9%
+CWH,Coastal Western Hemlock,10,10795067,19.5%
+ESSF,Engelmann Spruce -- Subalpine Fir,43,17465113,17.8%
+ICH,Interior Cedar -- Hemlock,12,5538842,10.2%
+IDF,Interior Douglas-fir,12,4488085,5.9%
+IMA,Interior Mountain-heather Alpine,2,1257949,29.2%
+MH,Mountain Hemlock,6,4059301,19.8%
+MS,Montane Spruce,8,2863394,9.4%
+PP,Ponderosa Pine,1,294985,7.1%
+SBPS,Sub-Boreal Pine -- Spruce,4,2265365,9.5%
+SBS,Sub-Boreal Spruce,11,10337497,6.7%
+SWB,Spruce -- Willow -- Birch,6,8655855,23.3%
