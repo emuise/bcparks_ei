@@ -25,7 +25,10 @@ library(raster) # in use for data
 library(ggsci) # in use for aaas
 library(scico) # in use for ridge plot
 #library(ggthemes) 
-theme_set(theme_bw())
+
+my_theme <- theme_bw() +
+  theme(panel.grid = element_blank())
+theme_set(my_theme)
 set.seed(69420)
 
 source(here::here("scripts", "get_keys.R"))
