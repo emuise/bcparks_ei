@@ -229,7 +229,7 @@ elev_zone_plot_20m <- elev_20m %>%
   coord_flip() +
   scale_y_continuous(labels = scales::percent) +
   labs(x = "Elevation (m)",
-       y = "Percent Cover",
+       y = "% Cover",
        fill = "BEC Zone") +
   theme(legend.position = "left") +
   scale_fill_igv()
@@ -254,7 +254,7 @@ prot_elev_plot <- protected_elev %>%
   geom_line() +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   labs(x = "Elevation (m)",
-       y = "Percent Protected") +
+       y = "% Protected") +
   coord_flip()
 
 prot_elev_plot_20m <- protected_elev %>% 
@@ -271,7 +271,7 @@ prot_elev_plot_20m <- protected_elev %>%
   geom_area() +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   labs(x = NULL,
-       y = "Percent Protected",
+       y = "% Protected",
        fill = NULL) +
   theme(axis.text.y = element_blank(),
         legend.position = c(0.7, 0.85)) +
@@ -306,8 +306,8 @@ protected_elev %>%
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   scale_colour_manual(values = c("red",
                                  "blue"),
-                      labels = c("Percent of BC",
-                                 "Percent Protected")) +
+                      labels = c("% of BC",
+                                 "% Protected")) +
   labs(x = "Elevation (m)",
        y = NULL,
        fill = NULL,
@@ -338,7 +338,7 @@ elev_lcc_20m <- elev_lcc_nw %>%
   scale_y_continuous(labels = scales::percent) +
   scale_fill_manual(values = vlce_colours) +
   labs(x = "Elevation (m)",
-       y = "Percent Cover",
+       y = "% Cover",
        fill = "Land Cover") +
   theme(legend.position = "left")
 
@@ -382,7 +382,7 @@ elev_dist_plot <- elev_dist %>%
   scale_y_continuous(labels = scales::percent) +
   #scale_fill_manual(values = vlce_colours) +
   labs(x = "Elevation (m)",
-       y = "Percent Disturbed",
+       y = "% Disturbed",
        fill = "Disturbance") +
   theme(legend.position = "left")
 
@@ -550,7 +550,7 @@ bec_subzone_boxes <- per_prot_zone %>%
   geom_vline(aes(xintercept = 0.10, colour = "2010 Biodiversity Target (Ecoregions)"), lty = "dashed") +
   scale_colour_aaas() +
   scale_x_continuous(labels = scales::percent) +
-  labs(x = "Percent Protected",
+  labs(x = "% Protected",
        y = NULL,
        fill = NULL,
        colour = NULL) +
@@ -621,7 +621,7 @@ bec_bar <- bec_conch_df %>%
   scale_colour_aaas() +
   scale_fill_igv() +
   labs(x = NULL,
-       y = "Percent Protected",
+       y = "% Protected",
        fill = NULL,
        colour = NULL) +
   scale_y_continuous(labels = scales::percent)
@@ -639,7 +639,7 @@ vlce %>%
   geom_point(aes(x = perc, y = zone)) +
   geom_vline(xintercept = c(.10, .17), colour = "red") +
   scale_x_continuous(lim = c(0, .302), labels = scales::percent) +
-  labs(x = "Percent Protected",
+  labs(x = "%Protected",
        y = NULL,
        fill = NULL)
 
@@ -736,7 +736,7 @@ t_tests_scatter <- t_tests_zonal %>%
   geom_boxplot(outlier.alpha = 0) +
   geom_jitter(aes(colour = zone), size = 2, width = 0) +
   #geom_text_repel(aes(label = zone), max.overlaps = 20) +
-  labs(x = "Percent of Significant (P < 0.01) Tests",
+  labs(x = "%of Significant (P < 0.01) Tests",
        y = NULL) +
   scale_colour_igv() +
   labs(colour = NULL) +
@@ -1084,56 +1084,61 @@ lat_bbox <- bc_bounds %>% st_transform(4326) %>% st_bbox()
 
 lat_range <- lat_bbox$ymax - lat_bbox$ymin
 
-lat_agg <- 1000
+lat_agg <- 0.5
+  
+min_lat <- lat_dist %>%
+  pull(latitude) %>%
+  min()
 
+max_lat <- lat_dist %>%
+  pull(latitude) %>%
+  max()
+    
 lat_df <- lat_dist %>% 
-  mutate(latitude = latitude %/% lat_agg * lat_agg,
-         Change_Attribution = ifelse(!(Change_Attribution %in% c(1, 2)), 
-                                     NA, 
-                                     Change_Attribution)) %>%
   group_by(protected, latitude, Change_Attribution) %>%
   summarize(count = sum(count)) %>%
-  mutate(perc = count / sum(count),
-         Change_Attribution = case_when(Change_Attribution == 1 ~ "Fire",
-                                        Change_Attribution == 2 ~ "Harvest",
-                                        TRUE ~ "None")) %>%
-  ungroup() %>%
-  mutate(latitude = latitude - min(latitude),
-         per_lat = latitude / max(latitude),
-         lat_real = (per_lat * lat_range) + lat_bbox$ymin)
-
-dist_colours <-  pal_igv("default")(3)[c(2, 3, 1)]
+  mutate(latitude = latitude - min_lat,
+         per_lat = latitude / max_lat,
+         lat_real = (per_lat * lat_range) + lat_bbox$ymin,
+         lat_real = lat_real %/% lat_agg * lat_agg) %>%
+  mutate(Change_Attribution = case_when(Change_Attribution == 1 ~ 1,
+                                        Change_Attribution == 2 ~ 2,
+                                        TRUE ~ 0)) %>%
+  group_by(protected, lat_real, Change_Attribution) %>%
+  summarize(count = sum(count)) %>%
+  mutate(perc = count / sum(count)) %>%
+  left_join(keys$disturbance, by = c("Change_Attribution" = "class_val"))
 
 lat_plot <- lat_df %>%
-  ggplot(aes(x = lat_real, y = perc, fill = Change_Attribution)) +
+  ggplot(aes(x = lat_real, y = perc, fill = class)) +
   geom_area() +
   facet_wrap(~str_to_title(protected)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
   coord_flip(ylim = c(.75, 1)) +
-  labs(x = expression("Latitude " ( degree)),
-       y = "Percent Disturbed",
-       fill = "Disturbance") +
+  labs(x = expression("Latitude " ( degree~N)),
+       y = "% Disturbed",
+       fill = NULL) +
   theme(legend.position = "bottom") +
-  scale_fill_manual(values = dist_colours)
-
-lat_plot
+  scale_fill_manual(values = dist_colours) +
+  scale_x_continuous(breaks = seq(48, 60, 3))
 
 lat_prot <- lat_df %>%
-  group_by(latitude, protected) %>%
+  group_by(lat_real, protected) %>%
   summarize(count = sum(count)) %>%
   mutate(perc = count / sum(count)) %>%
   filter(protected == "protected") %>%
-  ggplot(aes(x = latitude, y = perc)) +
+  ggplot(aes(x = lat_real, y = perc)) +
   #geom_smooth() +
   #geom_point() +
   geom_area() +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   labs(x = NULL,
-       y = "Percent Protected",
+       y = "% Protected",
        fill = NULL) +
   theme(axis.text.y = element_blank(),
         legend.position = c(0.7, 0.85)) +
-  coord_flip()
+  coord_flip() +
+  scale_x_continuous(breaks = seq(48, 60, 3))
   
 
 latitude_disturbance_plot <- plot_grid(lat_plot, lat_prot,
@@ -1145,6 +1150,52 @@ ggsave(here::here("outputs", "latitude_disturbance_plot.png"),
        height = 5.5,
        width = 8.5)
 ```
+
+```{r}
+agg_vals = seq(from = 0.05, to = 1, by = 0.05)
+
+output <- tibble()
+
+for (val in agg_vals) {
+  lat_df <- lat_dist %>% 
+    group_by(protected, latitude, Change_Attribution) %>%
+    summarize(count = sum(count)) %>%
+    mutate(latitude = latitude - min_lat,
+           per_lat = latitude / max_lat,
+           lat_real = (per_lat * lat_range) + lat_bbox$ymin,
+           lat_real = lat_real %/% val * val) %>%
+    mutate(Change_Attribution = case_when(Change_Attribution == 1 ~ 1,
+                                          Change_Attribution == 2 ~ 2,
+                                          TRUE ~ 0)) %>%
+    group_by(protected, lat_real, Change_Attribution) %>%
+    summarize(count = sum(count)) %>%
+    mutate(perc = count / sum(count)) %>%
+    left_join(keys$disturbance, by = c("Change_Attribution" = "class_val"))
+  
+  lat_df["agg_val"] = val
+  
+  output <- bind_rows(output, lat_df)
+}
+
+output %>%
+  ggplot(aes(x = lat_real, y = perc, fill = class)) +
+    geom_area() +
+    facet_grid(cols = vars(protected),
+               rows = vars(agg_val)) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    coord_flip(ylim = c(.75, 1)) +
+    labs(x = expression("Latitude " ( degree~N)),
+         y = "% Disturbed",
+         fill = NULL) +
+    theme(legend.position = "bottom") +
+    scale_fill_manual(values = dist_colours)
+
+ggsave(here::here("outputs", "lol.png"), device = "png",
+       width = 7.5,
+       height = 49)
+```
+
+ 
 
 overall vlce for more t tests maybe?
 
@@ -1347,8 +1398,8 @@ perc_both %>%
   scale_colour_igv() +
   geom_abline(intercept = 0, slope = 1, lty = "dashed") +
   coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
-  labs(x = "Percent Protected",
-       y = "Percent Other",
+  labs(x = "% Protected",
+       y = "% Other",
        colour = "Zone") +
   scale_x_continuous(labels = scales::percent) +
   scale_y_continuous(labels = scales::percent)
