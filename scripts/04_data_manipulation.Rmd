@@ -1,0 +1,181 @@
+---
+title: "04_analysis"
+author: "Evan Muise"
+date: "5/20/2021"
+output: html_document
+---
+
+Setup!
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+
+source(here::here("scripts", "get_keys.R"))
+```
+
+Merged DF methods
+
+```{r process, message=FALSE}
+full_dfs <- list.files(here::here("data", "all_vars"), 
+                       pattern = ".csv", full.names = T)
+
+full_dfs <- full_dfs[2:3]
+
+sample_loc <- here::here("data", "all_vars", "sampled")
+dir.create(sample_loc, showWarnings = FALSE)
+
+process_csv <- function(df) {
+  
+  print(df)
+  
+  split <- str_split(df, pattern = "/")
+  if (is.character(df)) {
+    df <- read_csv(df, col_types = cols())
+  }
+
+  df <- df %>%
+    filter(vlce != 0) %>% # filter out unclassified pixels
+    filter(elev < 32000) # filter out elevation nodata pixels (very small amount)
+  
+  cont <- df %>% 
+    filter(vlce %in% c(230, 220, 210, 81)) %>% # forested pixels
+    filter(Change_Attribution != 2) %>% # filter out harvested pixels
+    dplyr::select(subzone, protected, elev:total_biomass, vlce)
+  
+  # for slice_sample in next pipes
+  cont_cells <- cont %>% count(protected) %>% pull(n) %>% min()
+  
+  both <- cont %>% count(protected) %>% pull(n) %>% length()
+  # check if both protected and unprotected exists
+  
+  if (cont_cells != 0 & both == 2) {
+  
+    cont <- cont %>%
+      group_by(protected) %>%
+      slice_sample(n = cont_cells) # get same no. pixels prot and unprot
+    
+    
+    
+    
+    sample_name <- tail(split[[1]], 1)
+    
+    print("saving sampled df")
+    write_csv(cont, here::here(sample_loc, sample_name))
+    
+    cont_t_tests <- cont %>%
+      pivot_longer(cols = elev:total_biomass, names_to = "variable") %>%
+      group_by(subzone, variable, protected) %>%
+      nest() %>%
+      pivot_wider(names_from = protected, values_from = data) %>%
+      ungroup() %>%
+      mutate(
+        t_test = map2(protected, unprotected, ~{t.test(.x$value, .y$value) %>% 
+                 tidy()})
+      ) %>%
+      dplyr::select(!c("protected", "unprotected")) %>%
+      unnest(cols = t_test)
+    
+  } else {
+    
+    cont_t_tests <- tibble()
+    
+  }
+    
+  if (nrow(df) > 0) {
+    
+    # change wants harvest included, so operates on df, rather than disc
+    change <- df %>%
+      count(subzone, protected, Change_Attribution) %>%
+      group_by(subzone, protected) %>%
+      mutate(per_dist = n / sum(n))
+    
+    elev_dist <- df %>%
+      group_by(subzone, protected, elev, Change_Attribution) %>%
+      summarize(count = n())
+    
+    # remove harvested pixels post here
+    
+    disc <- df %>%
+      filter(Change_Attribution != 2) %>% # remove harvested pixels
+      dplyr::select(subzone, protected, vlce, Change_Attribution, change_year)
+    
+    
+    vlce <- disc %>%
+      count(subzone, protected, vlce) %>%
+      group_by(subzone, protected) %>%
+      mutate(per_cover = n / sum(n))
+    
+    elev_nw <- df %>% 
+      filter(Change_Attribution != 2) %>% # remove harvested pixels
+      left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
+      filter(class_name != "water") %>%
+      group_by(subzone, protected, elev, class_name) %>%
+      summarize(count = n())
+    
+    elev_w <- df %>% 
+      filter(Change_Attribution != 2) %>% # remove harvested pixels
+      left_join(keys$vlce, by = c("vlce" = "class_val")) %>%
+      group_by(subzone, protected, elev, class_name) %>%
+      summarize(count = n())
+    
+    lat_dist <- df %>%
+      group_by(subzone, protected, latitude, Change_Attribution) %>%
+      summarize(count = n())
+    
+    
+  } else {
+    
+    disc <- tibble()
+    vlce <- tibble()
+    change <- tibble()
+    elev_nw <- tibble()
+    elev_w <- tibble()
+    elev_dist <- tibble()
+    lat_dist <- tibble()
+    
+  }
+  
+  outputs <- list("cont_t_tests" = cont_t_tests, 
+                  "vlce" = vlce, 
+                  "change" = change,
+                  "elev_nw" = elev_nw,
+                  "elev_w" = elev_w,
+                  "elev_dist" = elev_dist,
+                  "lat_dist" = lat_dist)
+    
+    #names(outputs) <- c("cont_t_tests", "vlce", "change")
+    
+  return(outputs)
+  
+}
+
+outs <- map(full_dfs, process_csv)
+
+t_tests <- bind_rows(map(outs, 1))
+
+vlce <- bind_rows(map(outs, 2)) %>%
+  ungroup() %>%
+  complete(subzone, protected, vlce, 
+           fill = list(n = 0, per_cover = 0))
+
+change <- bind_rows(map(outs, 3)) %>%
+  ungroup() %>%
+  complete(subzone, protected, Change_Attribution, 
+           fill = list(n = 0, per_dist = 0))
+
+elev_nw <- bind_rows(map(outs, 4))
+
+elev_w <- bind_rows(map(outs, 5))
+
+elev_dist <- bind_rows(map(outs, 6))
+
+lat_dist <- bind_rows(map(outs, 7))
+
+#structure <- bind_rows(map(outs, 7))
+structure <- read_csv(here::here("data", "structure_means.csv"))
+```
+
+```{r save}
+save.image(file = here::here("data", "backup.RData"))
+```
