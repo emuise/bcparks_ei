@@ -32,6 +32,9 @@ library(gridGraphics) # probably in use
 
 library(raster)
 library(officer)
+library(RColorBrewer)
+library(terra)
+library(ggnewscale)
 
 my_theme <- theme_bw() +
   theme(panel.grid = element_blank())
@@ -141,7 +144,8 @@ hist_prot <- for_pyramid %>%
   scale_y_continuous(limits = c(-15, 0),
                      breaks = c(-15, -10, -5, 0),
                      labels = c(15, 10, 5, 0)) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 hist_unprot <- for_pyramid %>%
   filter(protected == "unprotected") %>%
@@ -154,12 +158,13 @@ hist_unprot <- for_pyramid %>%
        y = "Area (million ha)") +
   theme(axis.text.y = element_blank()) +
   scale_y_continuous(limits = c(0, 15)) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 
 area_prot <- for_pyramid %>%
   filter(protected == "protected") %>%
-  ggplot(aes(x = elev, y = perc, fill = zone_nm)) +
+  ggplot(aes(x = elev, y = perc, fill = fct_reorder(zone_nm, order))) +
   geom_area() +
   coord_flip() +
   scale_fill_igv() +
@@ -170,11 +175,12 @@ area_prot <- for_pyramid %>%
        fill = NULL) +
   theme(legend.position = "bottom",
         axis.text.y = element_blank()) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 area_unprot <- for_pyramid %>%
   filter(protected == "unprotected") %>%
-  ggplot(aes(x = elev, y = perc, fill = zone_nm)) +
+  ggplot(aes(x = elev, y = perc, fill = fct_reorder(zone_nm, order))) +
   geom_area() +
   coord_flip() +
   scale_fill_igv() +
@@ -185,7 +191,8 @@ area_unprot <- for_pyramid %>%
        fill = NULL) +
   theme(legend.position = "bottom",
         axis.text.y = element_blank()) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 bec_elev_hist <- (hist_prot + area_prot + area_unprot + hist_unprot) +
   plot_annotation(tag_levels = "I") +
@@ -250,7 +257,8 @@ hist_prot <- for_pyramid_vlce %>%
   scale_y_continuous(limits = c(-15, 0),
                      breaks = c(-15, -10, -5, 0),
                      labels = c(15, 10, 5, 0)) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 hist_unprot <- for_pyramid_vlce %>%
   filter(protected == "unprotected") %>%
@@ -263,7 +271,8 @@ hist_unprot <- for_pyramid_vlce %>%
        y = "Area (million ha)") +
   theme(axis.text.y = element_blank()) +
   scale_y_continuous(limits = c(0, 15)) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 
 area_prot <- for_pyramid_vlce %>%
@@ -279,7 +288,8 @@ area_prot <- for_pyramid_vlce %>%
        fill = NULL) +
   theme(legend.position = "bottom",
         axis.text.y = element_blank()) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 area_unprot <- for_pyramid_vlce %>%
   filter(protected == "unprotected") %>%
@@ -294,7 +304,8 @@ area_unprot <- for_pyramid_vlce %>%
        fill = NULL) +
   theme(legend.position = "bottom",
         axis.text.y = element_blank()) +
-  facet_wrap(~str_to_title(protected))
+  facet_wrap(~str_to_title(protected)) +
+  scale_x_continuous(limits = c(0, 4600))
 
 vlce_elev_hist <- (hist_prot + area_prot + area_unprot + hist_unprot) +
   plot_annotation(tag_levels = "I") +
@@ -384,7 +395,7 @@ for_legend <- bec_conch_df %>%
 
 bec_legend <- cowplot::get_legend(for_legend + theme(legend.box.margin = margin(0, 0, 0, -200)))
 
-ggsave("bec_legend.png", bec_legend, device = "png")
+ggsave(here::here("outputs", "bec_legend.png", bec_legend, device = "png"))
 ```
 
 
@@ -722,34 +733,136 @@ lat_plot <- lat_df %>%
   scale_fill_manual(values = dist_colours) +
   scale_x_continuous(breaks = seq(48, 60, 3))
 
+lat_plot_prot <- lat_df %>%
+  filter(protected == "protected") %>%
+  ggplot(aes(x = lat_real, y = perc, fill = class)) +
+  geom_area() +
+  facet_wrap(~str_to_title(protected)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  coord_flip(ylim = c(.75, 1)) +
+  labs(x = expression("Latitude " ( degree~N)),
+       y = "% Disturbed",
+       fill = NULL) +
+  theme(legend.position = "bottom") +
+  scale_fill_manual(values = dist_colours) +
+  scale_x_continuous(breaks = seq(48, 60, 3))
+
+lat_plot_unprot <- lat_df %>%
+  filter(protected == "unprotected") %>%
+  ggplot(aes(x = lat_real, y = perc, fill = class)) +
+  geom_area() +
+  facet_wrap(~str_to_title(protected)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  coord_flip(ylim = c(.75, 1)) +
+  labs(x = NULL,
+       y = "% Disturbed",
+       fill = NULL) +
+  theme(legend.position = "bottom") +
+  scale_fill_manual(values = dist_colours) +
+  scale_x_continuous(breaks = seq(48, 60, 3)) +
+  theme(axis.text.y = element_blank())
+
 lat_prot <- lat_df %>%
   group_by(lat_real, protected) %>%
   summarize(count = sum(count)) %>%
   mutate(perc = count / sum(count)) %>%
   filter(protected == "protected") %>%
+  mutate(label = "% Protected") %>%
   ggplot(aes(x = lat_real, y = perc)) +
   #geom_smooth() +
   #geom_point() +
   geom_area() +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   labs(x = NULL,
-       y = "% Protected",
+       y = NULL,
        fill = NULL) +
   theme(axis.text.y = element_blank(),
         legend.position = c(0.7, 0.85)) +
   coord_flip() +
-  scale_x_continuous(breaks = seq(48, 60, 3))
+  scale_x_continuous(breaks = seq(48, 60, 3)) +
+  facet_wrap(~label)
   
 
-latitude_disturbance_plot <- plot_grid(lat_plot, lat_prot,
-          rel_widths = c(3, 1),
-          align = 'h', axis = 'tb')
+dist_lat_hist <- (lat_plot_prot + lat_plot_unprot + lat_prot) +
+  plot_annotation(tag_levels = "I") +
+  plot_layout(nrow = 1, 
+              guides = "collect",
+              widths = c(1, 1, 1)) &
+  theme(legend.position = "bottom")
 
 ggsave(here::here("outputs", "latitude_disturbance_plot.png"),
-       plot = latitude_disturbance_plot, device = "png",
+       plot = dist_lat_hist, device = "png",
        height = 5.5,
        width = 8.5)
 ```
+
+```{r}
+lat_df <- lat_dist %>% 
+  separate(subzone, into = c("zone", "subzone")) %>%
+  group_by(zone, protected, latitude, Change_Attribution) %>%
+  summarize(count = sum(count)) %>%
+  mutate(latitude = latitude - min_lat,
+         per_lat = latitude / max_lat,
+         lat_real = (per_lat * lat_range) + lat_bbox$ymin,
+         lat_real = lat_real %/% lat_agg * lat_agg) %>%
+  mutate(Change_Attribution = case_when(Change_Attribution == 1 ~ 1,
+                                        Change_Attribution == 2 ~ 2,
+                                        TRUE ~ 0)) %>%
+  group_by(zone, protected, lat_real, Change_Attribution) %>%
+  summarize(count = sum(count)) %>%
+  mutate(perc = count / sum(count)) %>%
+  left_join(keys$disturbance, by = c("Change_Attribution" = "class_val"))
+
+lat_output <- lat_dist %>%
+  ungroup() %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  group_by(zone, protected, latitude, Change_Attribution) %>%
+  summarize(count = sum(count)) %>%
+  mutate(latitude = latitude - min_lat,
+         per_lat = latitude / max_lat,
+         lat_real = (per_lat * lat_range) + lat_bbox$ymin,
+         lat_real = lat_real %/% lat_agg * lat_agg) %>%
+  mutate(Change_Attribution = case_when(Change_Attribution == 1 ~ 1,
+                                        Change_Attribution == 2 ~ 2,
+                                        TRUE ~ 0)) %>%
+  group_by(zone, protected, lat_real, Change_Attribution) %>%
+  summarize(count = sum(count)) %>%
+  mutate(perc = count / sum(count)) %>%
+  left_join(keys$disturbance, by = c("Change_Attribution" = "class_val"))
+
+lat_output %>%
+  ggplot(aes(x = lat_real, y = perc, fill = class)) +
+  geom_area() +
+  facet_grid(cols ~ vars(protected),
+             rows ~ vars(zone)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  coord_flip(ylim = c(.75, 1)) +
+  labs(x = expression("Latitude " ( degree~N)),
+       y = "% Disturbed",
+       fill = NULL) +
+  theme(legend.position = "bottom") +
+  scale_fill_manual(values = dist_colours) +
+  scale_x_continuous(breaks = seq(48, 60, 3))
+
+lat_output %>%
+  ggplot(aes(x = lat_real, y = perc, fill = class)) +
+  geom_area() +
+  facet_grid(rows = vars(zone),
+             cols = vars(protected),
+             scales = "free_x") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  coord_flip(ylim = c(.75, 1)) +
+  labs(x = expression("Latitude " ( degree~N)),
+       y = "% Disturbed",
+       fill = NULL) +
+  theme(legend.position = "bottom") +
+  scale_fill_manual(values = dist_colours)
+
+ggsave(here::here("outputs", "lat_dist_zone.png"), device = "png",
+       width = 10, height = 45)
+```
+
+
 
 Table 1: BEC info
 
@@ -929,9 +1042,10 @@ structure %>%
   facet_wrap(~name) +
   labs(x = NULL,
        y = NULL,
-       fill = "Z-Score")
+       fill = "Z-Score") +
+  scale_fill_scico(palette = "vik")
 
-structure %>%
+z_score_plot <- structure %>%
   separate(subzone, into = c("zone", "subzone")) %>%
   dplyr::select(!starts_with("sd")) %>%
   group_by(protected, zone) %>%
@@ -952,7 +1066,35 @@ structure %>%
   labs(x = "Z-Score",
        y = "Zone",
        fill = NULL) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_fill_manual(values = c("#18db02" , "grey50", "grey70"))
+
+ggsave(here::here("outputs", "fstruct_zscores.png"), plot = z_score_plot, device = "png",
+       height = 8.5, width = 5.5)
+
+structure %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  dplyr::select(!starts_with("sd")) %>%
+  group_by(protected, zone) %>%
+  summarize(mean_elev_cv = weighted.mean(mean_elev_cv, count),
+            mean_percentage_first_returns_above_2m = weighted.mean(mean_percentage_first_returns_above_2m, count),
+            mean_loreys_height = weighted.mean(mean_loreys_height, count),
+            mean_total_biomass = weighted.mean(mean_total_biomass, count)) %>%
+  #mutate(across(starts_with("mean"), scale)) %>%
+  pivot_longer(starts_with("mean"), names_to = "var") %>%
+  pivot_wider(names_from = protected, values_from = value) %>%
+  mutate(difference = protected - unprotected) %>%
+  pivot_longer(protected:difference, names_to = "protected") %>%
+  mutate(var = str_remove(var, "mean_")) %>%
+  left_join(keys$continuous, by = c("var" = "variable")) %>%
+  ggplot(aes(x = value, y = fct_rev(zone), fill = str_to_title(protected))) +
+  geom_col(position = "dodge") +
+  facet_wrap(~var_long, scales = "free_x") +
+  labs(x = "Z-Score",
+       y = "Zone",
+       fill = NULL) +
+  theme(legend.position = "bottom") +
+  scale_fill_brewer(palette = "Dark2")
 
 ```
 
@@ -1006,6 +1148,7 @@ na_bbox <- countries %>%
   st_bbox()
 
 cad_bbox <- prov_sf %>%
+  st_transform(3348) %>%
   st_bbox()
 
 bec_zones_terr <- bec_zones_terr %>%
@@ -1030,22 +1173,108 @@ bec_map <- ggplot() +
         legend.position = c(.15, .4),
         legend.background = element_rect(fill = NA),
         legend.box.background = element_rect(fill = "white"))
+
+#ggsave(here::here("outputs", "bec_map_no_inset.png"), bec_map, device = "png")
+
+countries_map <- countriesHigh %>%
+  st_as_sf() %>%
+  filter(ADMIN == "United States of America" |
+         ADMIN == "Greenland") %>%
+  st_transform(3348)
   
 
 inset = ggplot() +
-  geom_sf(data = countries) +
-  geom_sf(data = prov_sf %>% filter(NAME_1 != "British Columbia"), fill = "grey70") +
-  geom_sf(data = prov_sf %>% filter(NAME_1 == "British Columbia"), fill = "grey50") +
-  geom_sf(data = bbox %>% st_as_sfc, fill = NA, colour = "red", size = 1.2) +
-  coord_sf(xlim = c(cad_bbox$xmin, cad_bbox$xmax - 250000),
+  geom_sf(data = countries_map) +
+  geom_sf(data = prov_sf %>% st_transform(3348) %>% filter(NAME_1 != "British Columbia"), fill = "grey70") +
+  geom_sf(data = prov_sf %>% st_transform(3348) %>% filter(NAME_1 == "British Columbia"), fill = "grey50") +
+  geom_sf(data = bbox %>% st_as_sfc %>% st_transform(3348), fill = NA, colour = "red", size = 1.2) +
+  coord_sf(xlim = c(cad_bbox$xmin - 300000, cad_bbox$xmax),
            ylim = c(cad_bbox$ymin, cad_bbox$ymax)) +
   theme_void() +
-  theme(panel.background = element_rect(fill = "white"),
-        panel.border = element_rect(colour = "black"))
+  theme(panel.border = element_rect(colour = "black"),
+        panel.background = element_rect(fill = "lightblue"))
 
 map_inset <- ggdraw(bec_map) +
   draw_plot(inset, x = 0.7, y = 0.7, width = .28, height = .28)
 
   
 ggsave(here::here("outputs", "bec_map.png"), plot = map_inset, device = "png", height = 7, width = 10)
+```
+
+Garabaldi Data Map
+
+```{r gar-map}
+bec <- read_sf(here::here("data", "shapefiles", "bec_zones.shp"))
+bc_ppa <- read_sf(here::here("data", "shapefiles", "bc_ppa.shp"))
+
+gar_sf <- bc_ppa %>% 
+  filter(NAME_E == "Garibaldi Park") 
+
+gar_vect <- gar_sf %>%
+  vect()
+
+gar_bec <- st_intersection(gar_sf, bec)
+
+in_rasters <- c(here::here("G:/", "Merged", "vlce", "BC-vlce-2015.tif"),
+                here::here("G:/", "Merged", "Change_Attribution", "BC-Change_Attribution.tif"),
+                here::here("G:/", "Merged", "elevation", "BC-elev.tif"),
+                here::here("G:/", "Merged", "masked_structure", "elev_cv", "masked-elev_cv-2015.tif"),
+                here::here("G:/", "Merged", "masked_structure", "loreys_height", "masked-loreys_height-2015.tif"),
+                here::here("G:/", "Merged", "masked_structure", "total_biomass", "masked-total_biomass-2015.tif"),
+                here::here("G:/", "Merged", "masked_structure", "percentage_first_returns_above_2m", "masked-percentage_first_returns_above_2m-2015.tif"))
+
+struct_vars <- c("elev_cv",
+                 "loreys_height",
+                 "total_biomass",
+                 "percentage_first_returns_above_2m")
+
+clip_gar <- function(filepath) {
+  
+  var <- str_split(filepath, "/")[[1]] %>%
+    tail(2) %>%
+    head(1)
+  print(var)
+
+  my_rast <- rast(filepath)
+  
+  my_rast <- my_rast %>%
+    crop(gar_vect) %>%
+    terra::mask(gar_vect)
+  
+  if (var %in% struct_vars) {
+    divider <- keys$continuous %>%
+      filter(variable == var) %>%
+      pull(divide_by)
+    print(divider)
+    
+    my_rast = my_rast / divider
+  }
+  
+  if (var == "elev_cv") {
+    # removes 5.912 outlier in the elev_cv dataset
+    
+    my_rast <- subst(my_rast, 5.912, NA)
+  }
+  
+  writeRaster(my_rast,
+              filename = here::here("data", "gar_maps", paste0("gar-", var, ".tif")),
+              overwrite = T)
+  
+  return(my_rast)
+}
+
+gar_rasts <- map(in_rasters, clip_gar)
+
+gar_slope <- terrain(gar_rasts[[3]], v = "slope", unit = "radians")
+gar_asp <- terrain(gar_rasts[[3]], v = "aspect", unit = "radians")
+
+gar_shade <- shade(gar_slope, gar_asp)
+
+terra::writeRaster(gar_shade, 
+                   here::here("data", "gar_maps", "hillshade.tif"),
+                   overwrite = T)
+
+terra::writeVector(gar_bec %>% vect(), 
+                   here::here("data", "gar_maps", "gar_bec.shp"),
+                   overwrite = T)
 ```

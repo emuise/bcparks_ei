@@ -20,7 +20,7 @@ Merged DF methods
 full_dfs <- list.files(here::here("data", "all_vars"), 
                        pattern = ".csv", full.names = T)
 
-full_dfs <- full_dfs[2:3]
+#full_dfs <- full_dfs[2:3]
 
 sample_loc <- here::here("data", "all_vars", "sampled")
 dir.create(sample_loc, showWarnings = FALSE)
