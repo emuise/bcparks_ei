@@ -6,4 +6,4 @@
 .vscode
 data/backup.Rdata
 ~$g_concepts_ncc_bud.docx
-data_map
+data_map/*
