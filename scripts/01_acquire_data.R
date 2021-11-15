@@ -123,7 +123,3 @@ if (!file.exists(bec_name)) {
            layer = "bec_zones.shp",
            driver = "ESRI Shapefile")
 }
-
-plot(bounds %>% st_geometry())
-
-terr_parks <- st_intersection(cpcad_bc, bounds)

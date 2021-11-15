@@ -20,6 +20,11 @@ mask_structure <- function(variable, year) {
   
   masked_structure <- terra::mask(structure, mask, maskvalues = 0)
   
+  if (variable == "elev_cv") {
+    # remove erroneous elev_cv values
+    masked_structure <- subst(masked_structure, 5912, NA)
+  }
+  
   terra::writeRaster(masked_structure, save_loc, overwrite = T, NAflag = 0)
 }
 

@@ -195,7 +195,7 @@ area_unprot <- for_pyramid %>%
   scale_x_continuous(limits = c(0, 4600))
 
 bec_elev_hist <- (hist_prot + area_prot + area_unprot + hist_unprot) +
-  plot_annotation(tag_levels = "A") +
+  plot_annotation(tag_levels = "a") +
   plot_layout(nrow = 1, 
               guides = "collect",
               widths = c(1, 3, 3, 1)) &
@@ -308,7 +308,7 @@ area_unprot <- for_pyramid_vlce %>%
   scale_x_continuous(limits = c(0, 4600))
 
 vlce_elev_hist <- (hist_prot + area_prot + area_unprot + hist_unprot) +
-  plot_annotation(tag_levels = "A") +
+  plot_annotation(tag_levels = "a") +
   plot_layout(nrow = 1, 
               guides = "collect",
               widths = c(1, 3, 3, 1)) &
@@ -370,21 +370,35 @@ ggsave(here::here("outputs", "bec_conch.png"), plot = bec_conch, device = "png",
        height = 5.5, width = 8.5)
 
 bec_bar <- bec_conch_df %>%
-  ggplot(aes(x = perc, y = fct_reorder(zone_nm, perc), fill = zone_nm)) +
-  geom_col() +
-  geom_vline(aes(xintercept = 0.17, colour = "2020 Protection Target (Global)"), lty = "dashed", size = 1) +
-  geom_vline(aes(xintercept = 0.25, colour = "2025 Protection Target (Canada)"), lty = "dashed", size = 1) +
-  geom_vline(aes(xintercept = 0.154, colour = "2020 BC Proportion Protected"), lty = "dashed", size = 1) +
-  theme(legend.position = "bottom") +
+  ggplot(aes(x = perc, y = fct_reorder(zone, perc), fill = zone)) +
+  geom_bar(stat = "identity") +
+  geom_vline(aes(xintercept = 0.17), colour = "#00BA38", lty = "dashed", size = 1) +
+  geom_vline(aes(xintercept = 0.25), colour = "#619CFF", lty = "dashed", size = 1) +
+  geom_vline(aes(xintercept = 0.154), colour = "#F8766D", lty = "dashed", size = 1) +
+  geom_hline(aes(yintercept = 0.17, colour = "2020 Protection Target (Global)"), lty = "dashed", size = 1) +
+  geom_hline(aes(yintercept = 0.25, colour = "2025 Protection Target (Canada)"), lty = "dashed", size = 1) +
+  geom_hline(aes(yintercept = 0.154, colour = "2020 BC Proportion Protected"), lty = "dashed", size = 1) +
+  guides(col = guide_legend(ncol = 1,
+                            keyheight = 0.75,
+                            default_unit = "inch",
+                            vjust = 1)) +
+  theme(legend.position = "bottom",
+        legend.key.size = unit(2, "lines"),
+        legend.justification = c(0, 1),
+        legend.margin = margin(t = 0, r = 0, b = 0, l = -20, unit = "pt")) +
   scale_fill_igv(guide = "none") +
+  #theme(legend.position = "none") +
   labs(x = "% Protected",
        y = NULL,
        colour = NULL) +
-  scale_x_continuous(labels = scales::percent)
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 10))
 
+
+bec_bar
 
 ggsave(here::here("outputs", "bec_bar.png"), plot = bec_bar, device = "png",
-       height = 5.5, width = 8.5)
+       height = 6, width = 3)
 ```
 
 Cell to pull a legend for BEC zones for later on
@@ -447,19 +461,32 @@ ggsave(here::here("outputs", "vlce_conch.png"), plot = vlce_conch, device = "png
 vlce_bar <- vlce_conch_df %>%
   ggplot(aes(x = perc, y = fct_reorder(as.factor(name_clean), perc), fill = fct_reorder(name_clean, vlce, .fun = max))) +
   geom_bar(stat = "identity") +
-  geom_vline(aes(xintercept = 0.17, colour = "2020 Protection Target (Global)"), lty = "dashed", size = 1) +
-  geom_vline(aes(xintercept = 0.25, colour = "2025 Protection Target (Canada)"), lty = "dashed", size = 1) +
-  geom_vline(aes(xintercept = 0.154, colour = "2020 BC Proportion Protected"), lty = "dashed", size = 1) +
-  theme(legend.position = "bottom") +
+  geom_vline(aes(xintercept = 0.17), colour = "#00BA38", lty = "dashed", size = 1) +
+  geom_vline(aes(xintercept = 0.25), colour = "#619CFF", lty = "dashed", size = 1) +
+  geom_vline(aes(xintercept = 0.154), colour = "#F8766D", lty = "dashed", size = 1) +
+  geom_hline(aes(yintercept = 0.17, colour = "2020 Protection Target (Global)"), lty = "dashed", size = 1) +
+  geom_hline(aes(yintercept = 0.25, colour = "2025 Protection Target (Canada)"), lty = "dashed", size = 1) +
+  geom_hline(aes(yintercept = 0.154, colour = "2020 BC Proportion Protected"), lty = "dashed", size = 1) +
+  guides(col = guide_legend(ncol = 1,
+                            keyheight = 0.75,
+                            default_unit = "inch",
+                            vjust = 1)) +
+  theme(legend.position = "bottom",
+        legend.key.size = unit(2, "lines"),
+        legend.justification = c(0, 1),
+        legend.margin = margin(t = 0, r = 0, b = 0, l = -20, unit = "pt")) +
   scale_fill_manual(values = vlce_colours, guide = "none") +
   #theme(legend.position = "none") +
   labs(x = "% Protected",
        y = NULL,
        colour = NULL) +
-  scale_x_continuous(labels = scales::percent)
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 10))
+
+vlce_bar
 
 ggsave(here::here("outputs", "vlce_bar.png"), vlce_bar, device = "png", 
-       height = 5.5, width = 8.5)
+       height = 6, width = 3)
 ```
 
 T-Test Plots
@@ -499,16 +526,20 @@ t_tests_scatter <- t_tests_zonal %>%
   geom_boxplot(outlier.alpha = 0) +
   geom_jitter(aes(colour = zone), size = 2, width = 0) +
   #geom_text_repel(aes(label = zone), max.overlaps = 20) +
-  labs(x = "%of Significant (P < 0.01) Tests",
-       y = NULL) +
+  labs(x = "% of Significant \n (P < 0.01) T-Tests",
+       y = NULL,
+       colour = NULL) +
   scale_colour_igv() +
-  labs(colour = NULL) +
-  scale_x_continuous(labels = scales::percent, limits = c(0.5, 1)) 
+  theme(legend.position = "bottom",
+        legend.justification = c(0, 1),
+        legend.margin = margin(t = 0, r = 0, b = 0, l = -69, unit = "pt")) +
+  scale_x_continuous(labels = scales::percent, limits = c(0.5, 1)) +
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 15))
 
 t_tests_scatter
 
 ggsave(here::here("outputs", "t_tests_scatter.png"), plot = t_tests_scatter, device = "png",
-       height = 5.5, width = 8.5)
+       height = 5.5, width = 3)
   
 ```
 
@@ -793,7 +824,7 @@ lat_prot <- lat_df %>%
   
 
 dist_lat_hist <- (lat_plot_prot + lat_plot_unprot + lat_prot) +
-  plot_annotation(tag_levels = "A") +
+  plot_annotation(tag_levels = "a") +
   plot_layout(nrow = 1, 
               guides = "collect",
               widths = c(1, 1, 1)) &
@@ -1071,15 +1102,18 @@ z_score_plot <- structure %>%
   left_join(keys$continuous, by = c("var" = "variable")) %>%
   ggplot(aes(x = value, y = fct_rev(zone), fill = str_to_title(protected))) +
   geom_col(position = "dodge") +
-  facet_wrap(~var_long) +
+  facet_wrap(~str_replace(var_long, " ", "\n")) + #replaces  with newline so it facets and doesn't cut off due to the small x width (3 inch)
   labs(x = "Z-Score",
-       y = "Zone",
+       y = NULL,
        fill = NULL) +
   theme(legend.position = "bottom") +
+  guides(fill = guide_legend(ncol = 1)) +
   scale_fill_manual(values = c("#18db02" , "grey50", "grey70"))
 
+z_score_plot
+
 ggsave(here::here("outputs", "fstruct_zscores.png"), plot = z_score_plot, device = "png",
-       height = 8.5, width = 5.5)
+       height = 8, width = 3)
 
 structure %>%
   separate(subzone, into = c("zone", "subzone")) %>%
@@ -1179,6 +1213,7 @@ bec_map <- ggplot() +
            datum = 4326) +
   theme_grey() +
   theme(panel.background = element_rect(fill = "lightblue"),
+        panel.border = element_rect(colour = "black", fill = NA),
         legend.position = c(.15, .4),
         legend.background = element_rect(fill = NA),
         legend.box.background = element_rect(fill = "white"))
