@@ -132,6 +132,12 @@ for_pyramid <- elev_agg %>%
          ha = 30 * 30 * n / 10000 / 1e6) %>%
   left_join(keys$bec)
 
+prot_line <- for_pyramid %>%
+  summarize(n = sum(n)) %>%
+  group_by(elev) %>%
+  mutate(perc = n / sum(n)) %>%
+  filter(protected == "protected") 
+
 hist_prot <- for_pyramid %>%
   filter(protected == "protected") %>%
   ggplot(aes(x = elev, weight = ha)) +
@@ -164,8 +170,9 @@ hist_unprot <- for_pyramid %>%
 
 area_prot <- for_pyramid %>%
   filter(protected == "protected") %>%
-  ggplot(aes(x = elev, y = perc, fill = fct_reorder(zone_nm, order))) +
-  geom_area() +
+  ggplot(aes(x = elev, y = perc)) +
+  geom_area(aes(fill = fct_reorder(zone_nm, order))) +
+  #geom_line(data = prot_line, lty = "dashed") +
   coord_flip() +
   scale_fill_igv() +
   #geom_hline(yintercept = 0, lty = "dashed", colour = "red") +
@@ -203,6 +210,24 @@ bec_elev_hist <- (hist_prot + area_prot + area_unprot + hist_unprot) +
 
 ggsave(here::here("outputs", "bec_elev_hist.png"), bec_elev_hist, device = "png",
        height = 6.5, width = 10)
+```
+
+```{r}
+for_pyramid %>%
+  dplyr::select(protected:n) %>%
+  pivot_wider(names_from = protected,
+              values_from = n) %>%
+  mutate(protected = ifelse(is.na(protected), 0, protected),
+         unprotected = ifelse(is.na(unprotected), 0, unprotected),
+         ratio = (protected - unprotected) / (protected + unprotected)) %>%
+  filter(!is.infinite(ratio) |
+           ratio > 5000) %>%
+  ggplot(aes(x = elev, y = ratio, colour = zone)) +
+  geom_line() +
+  scale_colour_igv() +
+  coord_flip()
+
+
 ```
 
 Elevation & Protected/Unprotected (VLCE) Figures
@@ -317,6 +342,151 @@ vlce_elev_hist <- (hist_prot + area_prot + area_unprot + hist_unprot) +
 ggsave(here::here("outputs", "lcc_elev_hist.png"), vlce_elev_hist, device = "png",
        height = 6.5, width = 10)
 ```
+
+```{r}
+library(reldist)
+
+splits <- elev_agg %>%
+  group_by(protected, zone) %>%
+  group_split()
+
+my_quantile <- function(df) {
+  zone = df %>% 
+    pull(zone) %>%
+    unique()
+  
+  protected = df %>% 
+    pull(protected) %>%
+    unique()
+  
+  outdf <- as.data.frame(wtd.quantile(df$elev, q = c(0.25, 0.5, 0.75), weight = df$n))
+  outdf["q"] = rownames(outdf)
+  colnames(outdf) <- c("elev", "q")
+  
+  tibble(outdf) %>%
+    pivot_wider(names_from = q,
+                values_from = elev) %>%
+    janitor::clean_names() %>%
+    mutate(iqr = x75_percent - x25_percent,
+           min = ifelse(x25_percent - iqr > 0, x25_percent - iqr, 0),
+           max = x75_percent + iqr) %>%
+    dplyr::select(!iqr) %>%
+    bind_cols(zone = zone, protected = protected)
+}
+
+boxplot_df <- map_dfr(splits, my_quantile)
+
+lcc_splits <- elev_lcc_nw %>%
+  dplyr::select(protected, elev, class_name, n) %>%
+  group_by(protected, class_name) %>%
+  group_split()
+
+my_quantile <- function(df) {
+  zone = df %>% 
+    pull(class_name) %>%
+    unique()
+  
+  protected = df %>% 
+    pull(protected) %>%
+    unique()
+  
+  outdf <- as.data.frame(wtd.quantile(df$elev, q = c(0.25, 0.5, 0.75), weight = df$n))
+  outdf["q"] = rownames(outdf)
+  colnames(outdf) <- c("elev", "q")
+  
+  tibble(outdf) %>%
+    pivot_wider(names_from = q,
+                values_from = elev) %>%
+    janitor::clean_names() %>%
+    mutate(iqr = x75_percent - x25_percent,
+           min = ifelse(x25_percent - iqr > 0, x25_percent - iqr, 0),
+           max = x75_percent + iqr) %>%
+    dplyr::select(!iqr) %>%
+    bind_cols(zone = zone, protected = protected)
+}
+
+lcc_boxplot <- map_dfr(lcc_splits, my_quantile)
+```
+
+```{r}
+bec_elev_boxes <- boxplot_df %>%
+  ggplot(aes(x = fct_reorder(zone, x50_percent))) +
+  geom_boxplot(aes(
+    lower = x25_percent,
+    upper = x75_percent,
+    middle = x50_percent,
+    ymin = min,
+    ymax = max,
+    fill = str_to_title(protected)),
+    stat = "identity") +
+  labs(x = "BEC Zone",
+       y = NULL,
+       fill = NULL) +
+  coord_flip() +
+  theme(legend.position = "none",
+        axis.text.x = element_blank())
+
+lcc_elev_boxes <- lcc_boxplot %>%
+  left_join(keys$vlce, by = c("zone" = "class_name")) %>%
+  ggplot(aes(x = fct_reorder(name_clean, x50_percent))) +
+  geom_boxplot(aes(
+    lower = x25_percent,
+    upper = x75_percent,
+    middle = x50_percent,
+    ymin = min,
+    ymax = max,
+    fill = str_to_title(protected)),
+    stat = "identity") +
+  labs(x = "Land Cover Class",
+       y = "Elevation (m)",
+       fill = NULL) +
+  coord_flip() +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 15)) +
+  theme(legend.position = "bottom",
+        legend.justification = c(0, 1),
+        legend.margin = margin(t = 0, r = 0, b = 0, l = -69, unit = "pt"))
+  
+```
+
+
+```{r}
+(elev_boxplots <- bec_elev_boxes / lcc_elev_boxes +
+  plot_annotation(tag_levels = "a"))
+
+ggsave(here::here("outputs", "elev_boxplots.png"), 
+       plot = elev_boxplots, 
+       device = "png",
+       width = 3,
+       height = 6.5,
+       units = "in")
+```
+
+bec-lcc-intersection
+```{r}
+bec_lcc <- elev_w %>%
+  filter(elev < 32000) %>%
+  mutate(elev = elev %/% elev_agg_val * elev_agg_val) %>%
+  separate(subzone, into = c("zone", "subzone")) %>%
+  group_by(protected, zone, class_name, elev) %>%
+  summarize(n = sum(count)) %>%
+  summarize(mean_elev = weighted.mean(elev, n)) %>%
+  pivot_wider(names_from = protected, values_from = mean_elev)
+
+bec_lcc %>%
+  ungroup() %>%
+  complete(zone, class_name) %>%
+  mutate(difference = protected - unprotected) %>%
+  ggplot(aes(x = str_to_title(class_name), y = fct_rev(zone), fill = difference)) +
+  geom_tile() +
+  scale_fill_scico(palette = "vik", limits = c(-800, 800)) +
+  labs(x = "Land Cover Class",
+       y = "BEC Zone",
+       fill = str_wrap("Elevation Difference", width = 10)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+```
+
+
+
 
 BEC proportions
 
@@ -942,7 +1112,7 @@ bec_table <- keys$bec %>%
   left_join(num_subzones) %>%
   left_join(bec_area) %>%
   left_join(bec_perc) %>%
-  mutate(area = as.integer(as.numeric(area / 10000)),
+  mutate(area = as.integer(as.numeric(area / 10000)), # converts to ha?
          perc_protected = paste0(round(as.numeric(perc_protected * 100), 1), "%"))
 
 write_csv(bec_table, here::here("outputs", "bec_table.csv"))
@@ -1083,7 +1253,8 @@ structure %>%
   labs(x = NULL,
        y = NULL,
        fill = "Z-Score") +
-  scale_fill_scico(palette = "vik")
+  scale_fill_scico(palette = "vik") +
+  coord_flip()
 
 z_score_plot <- structure %>%
   separate(subzone, into = c("zone", "subzone")) %>%

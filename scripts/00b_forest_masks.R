@@ -39,8 +39,5 @@ forest_masks <- function(vlce) {
   print(paste(year, "done"))
 }
 
-forest_masks(vlces[32])
-
 map(vlces, forest_masks)
 
-plot(rast(save_loc))
