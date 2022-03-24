@@ -1,8 +1,4 @@
 # BC Parks Ecological Integrity Analysis
 
-Code, analysis, and some data for Evan Muise's masters thesis.
-Mostly here for versioning and a backup of code.
-
-With NTEMS data, the entire analysis should be reproducible.
-
-Still working on making shareable environments for both R and Python
+code and analysis for manuscript submitted to ecological applications titled:
+Assessing Representation of Remote Sensing Derived Forest Structure and Land Cover Across a Network of Protected Areas
